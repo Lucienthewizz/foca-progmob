@@ -68,7 +68,7 @@ fun HomeScreen() {
             
             Column {
                 Text(
-                    text = "Hello, Guest!",
+                    text = "Hello, Guesttts!",
                     fontFamily = PoppinsFont,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
