@@ -1,5 +1,6 @@
 package com.example.foca.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,11 +28,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.foca.R
 import com.example.foca.ui.theme.FocaTheme
 import com.example.foca.ui.theme.PoppinsFont
 
@@ -42,7 +50,7 @@ fun HomeScreen() {
             .fillMaxSize()
             .background(Color(0xFFFAF8F0))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 28.dp)
             .padding(top = 60.dp, bottom = 24.dp)
     ) {
         // User greeting section
@@ -58,9 +66,9 @@ fun HomeScreen() {
                     .clip(CircleShape)
                     .background(Color(0xFFFFC107))
             ) {
-                Text(
-                    text = "🙂",
-                    fontSize = 24.sp
+                Image(
+                    painter = painterResource(id = R.drawable.foco_transparant_colorbg),
+                    contentDescription = "Profile Image"
                 )
             }
             
@@ -83,30 +91,31 @@ fun HomeScreen() {
         }
         
         Spacer(modifier = Modifier.height(24.dp))
-        
-        // Main Title
-        Text(
-            text = "Ayo Temui",
-            fontFamily = PoppinsFont,
-            color = Color(0xFFFFC107),
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Bold
+
+        val gradientBrush = Brush.linearGradient(
+            colors = listOf(
+                Color(0xFFFCE5CD), // 4%
+                Color(0xFFFFD877), // 38%
+                Color(0xFFFFB80A)  // 100%
+            )
         )
+
         Text(
-            text = "Catering Favorit",
-            fontFamily = PoppinsFont,
-            color = Color(0xFFFFC107),
+            text = buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        brush = gradientBrush,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = PoppinsFont,
+                    )
+                ) {
+                    append("Ayo Temui\nCatering Favorit\nAnda!")
+                }
+            },
             fontSize = 34.sp,
-            fontWeight = FontWeight.Bold
+            lineHeight = 45.sp
         )
-        Text(
-            text = "Anda!",
-            fontFamily = PoppinsFont,
-            color = Color(0xFFFFC107),
-            fontSize = 34.sp,
-            fontWeight = FontWeight.Bold
-        )
-        
+
         Spacer(modifier = Modifier.height(24.dp))
         
         // Jenis Katering
@@ -162,7 +171,7 @@ fun HomeScreen() {
                 .fillMaxWidth()
                 .height(240.dp)
         ) {
-            val menuItems = List(4) { "tumpeng" }
+            val menuItems = List(4) { "placeholder" }
             items(menuItems) { menuType ->
                 MenuCard(
                     type = menuType,
@@ -200,7 +209,7 @@ fun HomeScreen() {
 fun KateringCard(type: String, modifier: Modifier = Modifier) {
     Card(
         modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         when (type) {
@@ -261,7 +270,7 @@ fun MenuCard(type: String, modifier: Modifier = Modifier) {
                 .background(Color(0xFF4CAF50))
         ) {
             Text(
-                text = "Tumpeng",
+                text = "Placeholder",
                 fontFamily = PoppinsFont,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
