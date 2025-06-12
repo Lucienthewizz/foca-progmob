@@ -2,6 +2,7 @@ package com.example.foca.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -50,231 +51,180 @@ fun HomeScreen() {
             .fillMaxSize()
             .background(Color(0xFFFAF8F0))
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 28.dp)
-            .padding(top = 60.dp, bottom = 24.dp)
+            .padding(horizontal = 20.dp)
+            .padding(top = 70.dp, bottom = 24.dp)
     ) {
-        // User greeting section
+        // Header: Profile & Greeting
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(bottom = 12.dp)
         ) {
-            // Profile image
-            Box(
-                contentAlignment = Alignment.Center,
+            Image(
+                painter = painterResource(id = R.drawable.ic_john),
+                contentDescription = "Profile Image",
                 modifier = Modifier
-                    .size(48.dp)
+                    .size(55.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFFFC107))
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.foco_transparant_colorbg),
-                    contentDescription = "Profile Image"
-                )
-            }
-            
+            )
             Spacer(modifier = Modifier.width(12.dp))
-            
             Column {
                 Text(
-                    text = "Hello, Guest!",
+                    text = "Hello, John!",
                     fontFamily = PoppinsFont,
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
                 Text(
-                    text = "Log in to access more feature",
+                    text = "Siap memilih katering hari ini?",
                     fontFamily = PoppinsFont,
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-
-        val gradientBrush = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFFFCE5CD), // 4%
-                Color(0xFFFFD877), // 38%
-                Color(0xFFFFB80A)  // 100%
-            )
-        )
-
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        brush = gradientBrush,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = PoppinsFont,
-                    )
-                ) {
-                    append("Ayo Temui\nCatering Favorit\nAnda!")
-                }
-            },
-            fontSize = 34.sp,
-            lineHeight = 45.sp
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Jenis Katering
-        Text(
-            text = "Jenis Katering",
-            fontFamily = PoppinsFont,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = Color.Black
-        )
-        
+        // Search Bar
         Spacer(modifier = Modifier.height(8.dp))
-        
-        // Catering type cards
-        Row(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            KateringCard(
-                type = "outdoor",
-                modifier = Modifier
-                    .weight(1f)
-                    .height(110.dp)
-                    .padding(end = 4.dp)
-            )
-            KateringCard(
-                type = "outdoor", 
-                modifier = Modifier
-                    .weight(1f)
-                    .height(110.dp)
-                    .padding(start = 4.dp)
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Rekomendasi Menu
-        Text(
-            text = "Rekomendasi Menu",
-            fontFamily = PoppinsFont,
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = Color.Black
-        )
-        
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Menu items grid
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(vertical = 8.dp),
-            userScrollEnabled = false,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(240.dp)
+                .height(44.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White)
+                .padding(horizontal = 12.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
-            val menuItems = List(4) { "placeholder" }
-            items(menuItems) { menuType ->
-                MenuCard(
-                    type = menuType,
-                    modifier = Modifier
-                        .height(110.dp)
-                        .padding(4.dp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_search),
+                    contentDescription = "Search Icon",
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Cari menu, paket, atau vendor...",
+                    color = Color(0xFFBDBDBD),
+                    fontFamily = PoppinsFont,
+                    fontSize = 14.sp
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        // Katering Populer
+        // Kategori: Daily & Event
+        Spacer(modifier = Modifier.height(45.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            CategoryCard(
+                title = "Daily",
+                imageRes = R.drawable.ic_sandwich,
+                modifier = Modifier.weight(1f).padding(end = 6.dp).height(199.dp)
+            )
+            CategoryCard(
+                title = "Event",
+                imageRes = R.drawable.ic_stand,
+                modifier = Modifier.weight(1f).padding(start = 6.dp).height(199.dp)
+            )
+        }
+        // Rekomendasi Menu
+        Spacer(modifier = Modifier.height(32.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Rekomendasi Menu",
+                fontFamily = PoppinsFont,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = Color.Black
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            Text(
+                text = "more →",
+                fontFamily = PoppinsFont,
+                fontSize = 12.sp,
+                color = Color(0xFFBDBDBD)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(modifier = Modifier.fillMaxWidth()) {
+            RecommendationCard(modifier = Modifier.weight(1f).padding(end = 6.dp))
+            RecommendationCard(modifier = Modifier.weight(1f).padding(start = 6.dp))
+        }
+        // Paket Katering Favorit Minggu Ini
+        Spacer(modifier = Modifier.height(28.dp))
         Text(
-            text = "Katering Populer",
+            text = "Paket Katering Favorit Minggu Ini 🍒",
             fontFamily = PoppinsFont,
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             color = Color.Black
         )
-        
         Spacer(modifier = Modifier.height(8.dp))
-        
-        // Popular catering
-        KateringCard(
-            type = "populer",
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(110.dp)
-        )
-    }
-}
-
-@Composable
-fun KateringCard(type: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        when (type) {
-            "outdoor" -> {
-                Column {
-                    // Image part (top 70%)
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(0.7f)
-                            .background(Color(0xFF5C5C5C))
-                    ) {
-                        Text(
-                            text = "Outdoor Catering",
-                            fontFamily = PoppinsFont,
-                            color = Color.White
-                        )
-                    }
-                    // Yellow part (bottom 30%)
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(0.3f)
-                            .background(Color(0xFFFFD54F))
-                    )
-                }
-            }
-            else -> {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color(0xFF5C5C5C))
-                ) {
-                    Text(
-                        text = "Katering Populer",
-                        fontFamily = PoppinsFont,
-                        color = Color.White
-                    )
-                }
-            }
+        Row(modifier = Modifier.fillMaxWidth()) {
+            RecommendationCard(modifier = Modifier.weight(1f).padding(end = 6.dp))
+            RecommendationCard(modifier = Modifier.weight(1f).padding(start = 6.dp))
         }
     }
 }
 
 @Composable
-fun MenuCard(type: String, modifier: Modifier = Modifier) {
+fun CategoryCard(title: String, imageRes: Int, modifier: Modifier = Modifier) {
     Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.height(199.dp),
+        shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Box(
-            contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF4CAF50))
+                .background(Color(0xFFFDF6E9))
         ) {
             Text(
-                text = "Placeholder",
+                text = title,
                 fontFamily = PoppinsFont,
-                color = Color.White,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(16.dp)
             )
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = title,
+                modifier = Modifier
+                    .size(200.dp)
+                    .align(Alignment.BottomEnd)
+                    .padding(top = 50.dp, start = 40.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun RecommendationCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.height(150.dp),
+        shape = RoundedCornerShape(8.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.7f)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_restaurant),
+                    contentDescription = "Menu Image",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(0.4f)
+                    .background(Color(0xFFFFD54F))
+            ) {}
         }
     }
 }
