@@ -10,6 +10,7 @@ import androidx.navigation.NavController
 @Composable
 fun CateringDailyScreen(navController: NavController) {
     Column(Modifier.padding(16.dp)) {
+        Spacer(modifier = Modifier.height(50.dp))
         Text("Catering Daily", style = MaterialTheme.typography.titleLarge)
         // Add your daily catering content here
     }
