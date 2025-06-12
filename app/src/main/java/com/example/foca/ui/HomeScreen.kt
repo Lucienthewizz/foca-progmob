@@ -43,9 +43,27 @@ import androidx.compose.ui.unit.sp
 import com.example.foca.R
 import com.example.foca.ui.theme.FocaTheme
 import com.example.foca.ui.theme.PoppinsFont
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.clickable
 
 @Composable
 fun HomeScreen() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "home") {
+        composable("home") {
+            HomeContent(navController)
+        }
+        composable("catering_daily") {
+            CateringDailyScreen()
+        }
+    }
+}
+
+@Composable
+fun HomeContent(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -114,12 +132,14 @@ fun HomeScreen() {
             CategoryCard(
                 title = "Daily",
                 imageRes = R.drawable.ic_sandwich,
-                modifier = Modifier.weight(1f).padding(end = 6.dp).height(199.dp)
+                modifier = Modifier.weight(1f).padding(end = 6.dp).height(199.dp),
+                onClick = { navController.navigate("catering_daily") }
             )
             CategoryCard(
                 title = "Event",
                 imageRes = R.drawable.ic_stand,
-                modifier = Modifier.weight(1f).padding(start = 6.dp).height(199.dp)
+                modifier = Modifier.weight(1f).padding(start = 6.dp).height(199.dp),
+                onClick = {}
             )
         }
         // Rekomendasi Menu
@@ -166,9 +186,9 @@ fun HomeScreen() {
 }
 
 @Composable
-fun CategoryCard(title: String, imageRes: Int, modifier: Modifier = Modifier) {
+fun CategoryCard(title: String, imageRes: Int, modifier: Modifier = Modifier, onClick: () -> Unit = {}) {
     Card(
-        modifier = modifier.height(199.dp),
+        modifier = modifier.height(199.dp).clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -226,6 +246,26 @@ fun RecommendationCard(modifier: Modifier = Modifier) {
                     .background(Color(0xFFFFD54F))
             ) {}
         }
+    }
+}
+
+@Composable
+fun CateringDailyScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFFFBF2))
+            .padding(16.dp)
+    ) {
+        Text(
+            text = "Catering Daily",
+            fontFamily = PoppinsFont,
+            fontWeight = FontWeight.Bold,
+            fontSize = 22.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp)
+        )
+        // Tambahkan konten lain sesuai kebutuhan
     }
 }
 
