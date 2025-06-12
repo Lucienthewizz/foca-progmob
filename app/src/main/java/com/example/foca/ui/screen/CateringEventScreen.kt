@@ -1,0 +1,17 @@
+package com.example.foca.ui.screen
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+
+@Composable
+fun CateringEventScreen(navController: NavController) {
+    Column(Modifier.padding(16.dp)) {
+        Spacer(modifier = Modifier.height(50.dp))
+        Text("Catering Event", style = MaterialTheme.typography.titleLarge)
+        // Add your daily catering content here
+    }
+}
