@@ -8,6 +8,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.example.foca.R
 
+
 // Poppins font family
 val PoppinsFont = FontFamily(
     Font(R.font.poppins_regular, FontWeight.Normal),
