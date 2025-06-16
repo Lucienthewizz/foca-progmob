@@ -7,8 +7,13 @@ import androidx.navigation.compose.composable
 import com.example.foca.ui.screen.CateringDailyScreen
 import com.example.foca.ui.screen.CateringEventScreen
 import com.example.foca.ui.screen.HomeScreen
+import com.example.foca.ui.screen.LoadingScreen
+import com.example.foca.ui.screen.LoginScreen
+
 
 object Routes {
+    const val LOGIN = "login"
+    const val LOADING = "loading"
     const val HOME = "home"
     const val CATERING_DAILY = "catering_daily"
     const val CATERING_EVENT = "catering_event"
@@ -16,9 +21,12 @@ object Routes {
 
 @Composable
 fun AppNavHost(navController: NavHostController) {
-    NavHost(navController, startDestination = Routes.HOME) {
+    NavHost(navController, startDestination = Routes.LOADING) {
+        composable(Routes.LOADING) { LoadingScreen(navController) }
         composable(Routes.HOME) { HomeScreen(navController) }
         composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
         composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
+        composable(Routes.LOGIN) { LoginScreen(navController) } // <- Tambahkan ini
+
     }
-} 
+}
