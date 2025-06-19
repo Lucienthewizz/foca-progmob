@@ -105,10 +105,11 @@ fun LoginScreen(navController: NavController) {
                 fontSize = 12.sp,
                 color = Color(0xFFFCB507),
                 modifier = Modifier.clickable {
-                    // navigasi ke halaman register (jika sudah ada)
+                    navController.navigate(Routes.SIGNUP) // <-- navigasi ke SignUpScreen
                 }
             )
         }
+
     }
 }
 

@@ -9,9 +9,11 @@ import com.example.foca.ui.screen.CateringEventScreen
 import com.example.foca.ui.screen.HomeScreen
 import com.example.foca.ui.screen.LoadingScreen
 import com.example.foca.ui.screen.LoginScreen
+import com.example.foca.ui.screen.SignUpScreen
 
 
 object Routes {
+    const val SIGNUP = "signup"
     const val LOGIN = "login"
     const val LOADING = "loading"
     const val HOME = "home"
@@ -26,7 +28,9 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.HOME) { HomeScreen(navController) }
         composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
         composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
-        composable(Routes.LOGIN) { LoginScreen(navController) } // <- Tambahkan ini
+        composable(Routes.LOGIN) { LoginScreen(navController) }
+        composable(Routes.SIGNUP) { SignUpScreen(navController) }
+
 
     }
 }
