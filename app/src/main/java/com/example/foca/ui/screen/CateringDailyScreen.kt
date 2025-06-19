@@ -29,8 +29,8 @@ fun CateringDailyScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFDF6E9)) // cream background
-            .padding(start = 16.dp, end = 16.dp, top = 48.dp, bottom = 16.dp)
+            .background(Color(0xFFFDFBF7))
+            .padding(start = 16.dp, end = 16.dp, top = 70.dp, bottom = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // Title

@@ -16,17 +16,17 @@ fun BottomNavigationBar(navController: NavHostController) {
         BottomNavItem.Profile
     )
 
-    NavigationBar(
-        containerColor = Color.White
-    ) {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
 
+    NavigationBar(containerColor = Color.White) {
         items.forEach { item ->
+            val selected = currentRoute == item.route
+
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = selected,
                 onClick = {
-                    if (currentRoute != item.route) {
+                    if (!selected) {
                         navController.navigate(item.route) {
                             popUpTo(navController.graph.startDestinationId) { saveState = true }
                             launchSingleTop = true
@@ -34,9 +34,28 @@ fun BottomNavigationBar(navController: NavHostController) {
                         }
                     }
                 },
-                icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) }
-            )
+                icon = {
+                    Icon(
+                        imageVector = item.icon,
+                        contentDescription = item.label,
+                        // Warna Icon saat Selected
+                        tint = if (selected) Color(0xFFFCB507) else Color.Gray
+                    )
+                },
+                label = {
+                    Text(
+                        text = item.label,
+                        // Warna Text saat Selected
+                        color = if (selected) Color(0xFFFCB507) else Color.Gray
+                    )
+                },
+                alwaysShowLabel = true,
+
+                // Warna BG saat Selected
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = Color(0xFFFFF3CD)
+
+            ))
         }
     }
 }
