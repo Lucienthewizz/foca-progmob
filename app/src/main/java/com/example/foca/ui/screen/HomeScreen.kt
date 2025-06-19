@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -31,7 +30,7 @@ fun HomeScreen(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFFAF8F0))
+            .background(Color(0xFFFDFBF7))
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 20.dp)
             .padding(top = 70.dp, bottom = 24.dp)
@@ -46,7 +45,7 @@ fun HomeScreen(navController: NavController) {
                 contentDescription = "Profile Image",
                 modifier = Modifier
                     .size(55.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(17.dp))
             )
             Spacer(modifier = Modifier.width(12.dp))
             Column {
@@ -147,6 +146,7 @@ fun HomeScreen(navController: NavController) {
             RecommendationCard(modifier = Modifier.weight(1f).padding(start = 6.dp))
         }
     }
+
 }
 
 @Composable
@@ -211,4 +211,5 @@ fun RecommendationCard(modifier: Modifier = Modifier) {
             ) {}
         }
     }
-} 
+}
+
