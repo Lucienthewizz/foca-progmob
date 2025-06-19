@@ -44,32 +44,36 @@ fun SignUpScreen(navController: NavController) {
         .fillMaxWidth()
         .height(56.dp)
 ) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .background(Color.White, shape = RoundedCornerShape(14.dp))
+                    .clickable { /* action */ },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Sign Up",
+                    fontSize = 16.sp,
+                    color = Color.Black
+                )
+            }
+
+
+            Spacer(modifier = Modifier.width(8.dp))
+
     Box(
         modifier = Modifier
             .weight(1f)
-            .background(Color.White, shape = RoundedCornerShape(12.dp))
-            .clickable { /* ini halaman sekarang */ },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Sign Up",
-            fontSize = 14.sp,
-            color = Color.Black
-        )
-    }
-
-    Spacer(modifier = Modifier.width(8.dp))
-
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .background(Color(0xFFEFEFEF), shape = RoundedCornerShape(12.dp))
+            .fillMaxWidth()
+            .height(56.dp)
+            .background(Color(0xFFEFEFEF), shape = RoundedCornerShape(14.dp))
             .clickable { navController.navigate(Routes.LOGIN) },
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "Log In",
-            fontSize = 14.sp,
+            fontSize = 16.sp,
             color = Color.Gray
         )
     }
