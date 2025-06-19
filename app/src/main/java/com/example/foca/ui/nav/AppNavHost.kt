@@ -12,9 +12,11 @@ import com.example.foca.ui.screen.HomeScreen
 import com.example.foca.ui.screen.LoadingScreen
 import com.example.foca.ui.screen.LoginScreen
 import com.example.foca.ui.screen.ProfileScreen
+import com.example.foca.ui.screen.SignUpScreen
 
 
 object Routes {
+    const val SIGNUP = "signup"
     const val LOGIN = "login"
     const val LOADING = "loading"
     const val HOME = "home"
@@ -36,6 +38,8 @@ fun AppNavHost(navController: NavHostController) {
         composable(Routes.CART) { CartScreen(navController) }
         composable(Routes.CHAT) { ChatScreen(navController) }
         composable(Routes.PROFILE) { ProfileScreen(navController) }
+        composable(Routes.SIGNUP) { SignUpScreen(navController) }
+
 
         // -------- BottomNav items ---------
 
