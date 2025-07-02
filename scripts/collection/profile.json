@@ -1,0 +1,10 @@
+{
+  "profile": {
+    "user1": {
+      "userId": "user1",
+      "name": "Budi Santoso",
+      "email": "budi@email.com",
+      "photoUrl": "https://your-storage-url/profile-budi.jpg"
+    }
+  }
+}

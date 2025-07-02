@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "112396476754",
+    "firebase_url": "https://foca-progmob-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "foca-progmob",
     "storage_bucket": "foca-progmob.firebasestorage.app"
   },
@@ -12,7 +13,20 @@
           "package_name": "com.example.foca"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "112396476754-s2c12jd8ohoe76ur5un9qc971odfl0qa.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.foca",
+            "certificate_hash": "bee132e8d551e7d1375860f198815b181df0ff3b"
+          }
+        },
+        {
+          "client_id": "112396476754-fjlmlone66co2u05edpi8mbega5bf8b4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA3-xpWdm48UoY8xb-wLjR5a40ECfbcngo"
@@ -20,7 +34,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "112396476754-fjlmlone66co2u05edpi8mbega5bf8b4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

@@ -1,131 +1,133 @@
 package com.example.foca.ui.screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.foca.R
+import com.example.foca.data.viewmodel.CateringViewModel
+import com.example.foca.ui.components.FoodCard
+import com.example.foca.ui.components.SearchFilterComponent
+import com.example.foca.ui.theme.PoppinsFont
+import com.google.gson.Gson
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 
 @Composable
 fun CateringDailyScreen(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") }
+    val viewModel: CateringViewModel = viewModel()
+    val allItems by viewModel.allItems.collectAsState(initial = emptyList())
+    val isLoading by viewModel.isLoading.collectAsState()
+    val (searchQuery, setSearchQuery) = remember { mutableStateOf("") }
+    val (selectedSubcategory, setSelectedSubcategory) = remember { mutableStateOf("Harian") }
+    val subcategories = listOf("Harian", "Mingguan", "Bulanan")
+
+    LaunchedEffect(Unit) {
+        viewModel.loadAllCateringItems()
+    }
+
+    val filteredItems = allItems.filter {
+        it.category.lowercase() == "daily-${selectedSubcategory.lowercase()}" &&
+        (searchQuery.isBlank() || it.title.contains(searchQuery, ignoreCase = true) || it.description.contains(searchQuery, ignoreCase = true))
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFFDFBF7))
-            .padding(start = 16.dp, end = 16.dp, top = 70.dp, bottom = 16.dp)
-            .verticalScroll(rememberScrollState())
+            .padding(start = 20.dp, end = 20.dp, top = 75.dp, bottom = 24.dp)
     ) {
-        // Title
-        Text(
-            text = "Catering Daily",
-            fontSize = 24.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        // Search Bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(Color.White, shape = RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            if (searchQuery.isEmpty()) {
-                Text(text = "Cari menu, paket, atau vendor...", color = Color.Gray, fontSize = 14.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { navController.popBackStack("home", false) }) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
             }
-            BasicTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                textStyle = TextStyle(color = Color.Black, fontSize = 14.sp),
-                modifier = Modifier.fillMaxWidth()
-            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Catering Daily", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Row 1: Appetizer & Main Course
-        Row(modifier = Modifier.fillMaxWidth()) {
-            CategoryCard(
-                title = "Appetizer",
-                imageRes = R.drawable.appetizer,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 6.dp)
-                    .height(160.dp)
-            )
-            CategoryCard(
-                title = "Main Course",
-                imageRes = R.drawable.ic_restaurant,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 6.dp)
-                    .height(160.dp)
-            )
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
-
-        // Row 2: Dessert only (left aligned)
-        Row(modifier = Modifier.fillMaxWidth()) {
-            CategoryCard(
-                title = "Dessert",
-                imageRes = R.drawable.dessert,
-                modifier = Modifier
-                    .weight(1f)
-                    .height(160.dp)
-            )
-            Spacer(modifier = Modifier.weight(1f)) // kosongkan kanan
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            subcategories.forEach { subcat ->
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (selectedSubcategory == subcat) Color(0xFFFCB507) else Color.White
+                    ),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 4.dp)
+                        .height(60.dp)
+                        .clickable { setSelectedSubcategory(subcat) }
+                ) {
+                    Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                        Text(subcat, fontFamily = PoppinsFont, fontWeight = FontWeight.Medium, color = if (selectedSubcategory == subcat) Color.White else Color.Black)
+                    }
+                }
+            }
         }
-    }
-}
-
-@Composable
-fun CategoryCard(
-    title: String,
-    imageRes: Int,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .padding(4.dp)
-            .clickable { },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = title,
-                modifier = Modifier.size(64.dp)
-            )
-            Text(text = title, fontSize = 16.sp, color = Color.Black)
+        Spacer(modifier = Modifier.height(16.dp))
+        SearchFilterComponent(
+            searchQuery = searchQuery,
+            onSearchQueryChange = setSearchQuery,
+            selectedCategory = "",
+            onCategorySelected = {},
+            selectedRating = 0.0,
+            onRatingSelected = {},
+            sortOption = "",
+            onSortOptionSelected = {},
+            categoryOptions = emptyList(),
+            ratingOptions = emptyList(),
+            sortOptions = emptyList(),
+            onResetFilters = {},
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Color(0xFFFCB507))
+            }
+        } else if (filteredItems.isEmpty()) {
+            Text("Tidak ada menu daily.", color = Color.Gray)
+        } else {
+            LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                items(filteredItems) { item ->
+                    FoodCard(
+                        item = item,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        onClick = {
+                            navController.navigate("detail/${item.id}")
+                        }
+                    )
+                }
+            }
         }
     }
 }

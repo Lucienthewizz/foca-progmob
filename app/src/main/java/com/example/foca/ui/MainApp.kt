@@ -11,7 +11,7 @@ import com.example.foca.ui.nav.AppNavHost
 import com.example.foca.ui.nav.Routes
 
 @Composable
-fun MainApp() {
+fun MainApp(onGoogleSignIn: (() -> Unit)? = null, userId: String? = null) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -26,7 +26,7 @@ fun MainApp() {
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            AppNavHost(navController = navController)
+            AppNavHost(navController = navController, onGoogleSignIn = onGoogleSignIn, userId = userId)
         }
 
         // Bottom navigation bar

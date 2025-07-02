@@ -1,0 +1,19 @@
+{
+  "chat": {
+    "user1": {
+      "userId": "user1",
+      "messages": [
+        {
+          "sender": "user",
+          "text": "Halo, ada yang bisa dibantu?",
+          "timestamp": 1710000000000
+        },
+        {
+          "sender": "admin",
+          "text": "Tentu, silakan tanyakan.",
+          "timestamp": 1710000001000
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "catering_items": {
+    "item1": {
+      "title": "Nasi Goreng Harian",
+      "description": "Nasi goreng untuk menu harian, praktis dan lezat.",
+      "price": 25000,
+      "imageUrl": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-harian",
+      "isRecommended": true,
+      "isFavorite": false
+    },
+    "item2": {
+      "title": "Paket Mingguan Hemat",
+      "description": "Paket catering mingguan untuk keluarga.",
+      "price": 150000,
+      "imageUrl": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-mingguan",
+      "isRecommended": true,
+      "isFavorite": true
+    },
+    "item3": {
+      "title": "Paket Bulanan Sehat",
+      "description": "Paket catering bulanan dengan menu sehat dan variatif.",
+      "price": 500000,
+      "imageUrl": "https://images.unsplash.com/photo-1464306076886-debca5e8a6b0?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-bulanan",
+      "isRecommended": false,
+      "isFavorite": false
+    },
+    "item4": {
+      "title": "Paket Wedding Premium",
+      "description": "Paket catering lengkap untuk acara pernikahan.",
+      "price": 1500000,
+      "imageUrl": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=600&q=80",
+      "category": "event-wedding",
+      "isRecommended": true,
+      "isFavorite": true
+    },
+    "item5": {
+      "title": "Paket Birthday Anak",
+      "description": "Paket catering untuk acara ulang tahun anak-anak.",
+      "price": 800000,
+      "imageUrl": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=600&q=80",
+      "category": "event-birthday",
+      "isRecommended": false,
+      "isFavorite": true
+    },
+    "item6": {
+      "title": "Paket Meeting Kantor",
+      "description": "Paket catering untuk acara meeting kantor.",
+      "price": 600000,
+      "imageUrl": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=600&q=80",
+      "category": "event-meeting",
+      "isRecommended": false,
+      "isFavorite": true
+    },
+    "item7": {
+      "title": "Paket Gathering Outdoor",
+      "description": "Paket catering untuk acara gathering di luar ruangan.",
+      "price": 1200000,
+      "imageUrl": "https://images.unsplash.com/photo-1516685018646-5499d0a7d42f?auto=format&fit=crop&w=600&q=80",
+      "category": "event-other",
+      "isRecommended": false,
+      "isFavorite": false
+    },
+    "item8": {
+      "title": "Ayam Bakar Harian",
+      "description": "Ayam bakar dengan bumbu spesial untuk menu harian.",
+      "price": 35000,
+      "imageUrl": "https://images.unsplash.com/photo-1464306076886-debca5e8a6b0?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-harian",
+      "isRecommended": true,
+      "isFavorite": true
+    },
+    "item9": {
+      "title": "Salad Buah Mingguan",
+      "description": "Salad buah segar untuk menu mingguan sehat.",
+      "price": 20000,
+      "imageUrl": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-mingguan",
+      "isRecommended": false,
+      "isFavorite": false
+    },
+    "item10": {
+      "title": "Tumpeng Mini Bulanan",
+      "description": "Tumpeng mini untuk syukuran bulanan.",
+      "price": 70000,
+      "imageUrl": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=600&q=80",
+      "category": "daily-bulanan",
+      "isRecommended": true,
+      "isFavorite": false
+    },
+    "item11": {
+      "title": "Paket Wedding Silver",
+      "description": "Paket catering wedding dengan menu silver.",
+      "price": 1000000,
+      "imageUrl": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=600&q=80",
+      "category": "event-wedding",
+      "isRecommended": false,
+      "isFavorite": false
+    },
+    "item12": {
+      "title": "Paket Birthday Dewasa",
+      "description": "Paket catering untuk ulang tahun dewasa.",
+      "price": 900000,
+      "imageUrl": "https://images.unsplash.com/photo-1502741338009-cac2772e18bc?auto=format&fit=crop&w=600&q=80",
+      "category": "event-birthday",
+      "isRecommended": true,
+      "isFavorite": false
+    },
+    "item13": {
+      "title": "Paket Meeting Eksekutif",
+      "description": "Paket catering untuk meeting eksekutif.",
+      "price": 1200000,
+      "imageUrl": "https://images.unsplash.com/photo-1519864600265-abb23847ef2c?auto=format&fit=crop&w=600&q=80",
+      "category": "event-meeting",
+      "isRecommended": true,
+      "isFavorite": true
+    },
+    "item14": {
+      "title": "Paket Arisan Outdoor",
+      "description": "Paket catering untuk arisan keluarga di luar ruangan.",
+      "price": 800000,
+      "imageUrl": "https://images.unsplash.com/photo-1516685018646-5499d0a7d42f?auto=format&fit=crop&w=600&q=80",
+      "category": "event-other",
+      "isRecommended": false,
+      "isFavorite": true
+    }
+  }
+}
