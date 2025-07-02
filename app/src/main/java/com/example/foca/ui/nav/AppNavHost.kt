@@ -13,6 +13,18 @@ import com.example.foca.ui.screen.LoadingScreen
 import com.example.foca.ui.screen.LoginScreen
 import com.example.foca.ui.screen.ProfileScreen
 import com.example.foca.ui.screen.SignUpScreen
+import com.example.foca.ui.screen.DetailScreen
+import com.example.foca.data.model.CateringItem
+import com.google.gson.Gson
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.foca.data.viewmodel.ProfileViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.LaunchedEffect
+import com.example.foca.ui.screen.PaymentScreen
+import com.example.foca.ui.screen.OrderHistoryScreen
+import com.example.foca.data.viewmodel.CateringViewModel
 
 
 object Routes {
@@ -28,36 +40,71 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController) {
+fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? = null, userId: String? = null) {
+    val profileViewModel: ProfileViewModel = viewModel()
+    val profileState = profileViewModel.profile.collectAsState()
+    if (!userId.isNullOrEmpty()) {
+        LaunchedEffect(userId) { profileViewModel.loadProfile(userId) }
+    }
+    val userName = profileState.value?.name
+    val userPhotoUrl = profileState.value?.photoUrl
     NavHost(navController, startDestination = Routes.LOADING) {
         composable(Routes.LOADING) { LoadingScreen(navController) }
-        composable(Routes.HOME) { HomeScreen(navController) }
-        composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
-        composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
-        composable(Routes.LOGIN) { LoginScreen(navController) }
-        composable(Routes.CART) { CartScreen(navController) }
-        composable(Routes.CHAT) { ChatScreen(navController) }
-        composable(Routes.PROFILE) { ProfileScreen(navController) }
+        composable(Routes.LOGIN) { LoginScreen(navController, onGoogleSignIn, userId) }
         composable(Routes.SIGNUP) { SignUpScreen(navController) }
 
+        // -------- Main Routes ---------
+        // Menggunakan BottomNavItem.Home.route untuk menghindari duplikasi
+        composable(BottomNavItem.Home.route) { HomeScreen(navController, userName, userPhotoUrl) }
+        composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
+        composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
+        composable(BottomNavItem.Cart.route) { CartScreen(navController) }
+        composable(BottomNavItem.Chat.route) { ChatScreen(navController) }
+        composable(BottomNavItem.Profile.route) { ProfileScreen(navController, userId) }
 
-        // -------- BottomNav items ---------
+        // New composable route for DetailScreen
+        composable(
+            route = "detail/{itemId}",
+            arguments = listOf(navArgument("itemId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
+            val cateringViewModel: CateringViewModel = viewModel()
+            val allItems = cateringViewModel.allItems.collectAsState().value
+            androidx.compose.runtime.LaunchedEffect(itemId) {
+                if (allItems.isEmpty()) cateringViewModel.loadAllCateringItems()
+            }
+            val item = allItems.find { it.id == itemId }
+            if (item != null) {
+                DetailScreen(item = item)
+            } else {
+                // Optional: tampilkan loading atau pesan data tidak ditemukan
+                androidx.compose.material3.Text("Loading menu detail...")
+            }
+        }
 
-        // Home(Halaman Utama)
-        composable(BottomNavItem.Home.route) {
-            HomeScreen(navController)
+        // New composable route for PaymentScreen
+        composable("payment/{address}/{note}/{date}/{total}",
+            arguments = listOf(
+                navArgument("address") { type = NavType.StringType },
+                navArgument("note") { type = NavType.StringType },
+                navArgument("date") { type = NavType.StringType },
+                navArgument("total") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val address = backStackEntry.arguments?.getString("address") ?: ""
+            val note = backStackEntry.arguments?.getString("note") ?: ""
+            val date = backStackEntry.arguments?.getString("date") ?: ""
+            val total = backStackEntry.arguments?.getString("total")?.toDoubleOrNull() ?: 0.0
+            PaymentScreen(address, note, date, total, onConfirm = {}, navController = navController)
         }
-        // Cart(Keranjang)
-        composable(BottomNavItem.Cart.route) {
-            CartScreen(navController)
+        composable("home?paymentSuccess={paymentSuccess}", arguments = listOf(
+            navArgument("paymentSuccess") { type = NavType.StringType; defaultValue = "false" }
+        )) { backStackEntry ->
+            val paymentSuccess = backStackEntry.arguments?.getString("paymentSuccess") == "true"
+            HomeScreen(navController, userName, userPhotoUrl, paymentSuccess)
         }
-        // Chat(Pesan)
-        composable(BottomNavItem.Chat.route) {
-            ChatScreen(navController)
-        }
-        // Profile(Profil)
-        composable(BottomNavItem.Profile.route) {
-            ProfileScreen(navController)
+        composable("order_history") {
+            OrderHistoryScreen(navController, userId)
         }
     }
 }

@@ -1,0 +1,17 @@
+{
+  "cart": {
+    "user1": {
+      "userId": "user1",
+      "items": [
+        {
+          "cateringId": "item1",
+          "quantity": 2
+        },
+        {
+          "cateringId": "item2",
+          "quantity": 1
+        }
+      ]
+    }
+  }
+}
