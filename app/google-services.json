@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "112396476754",
+    "project_id": "foca-progmob",
+    "storage_bucket": "foca-progmob.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:112396476754:android:42ca6e101a33cd7e595a8b",
+        "android_client_info": {
+          "package_name": "com.example.foca"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA3-xpWdm48UoY8xb-wLjR5a40ECfbcngo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
