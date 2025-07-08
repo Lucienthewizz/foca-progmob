@@ -3,6 +3,8 @@ package com.example.foca.data.repository
 import com.example.foca.data.model.CateringItem
 import com.example.foca.data.model.CartItem
 import com.example.foca.data.model.Order
+import com.example.foca.data.model.Comment
+import com.example.foca.data.model.ChatMessage
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.tasks.await
 class FirebaseRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val cateringCollection = firestore.collection("catering_items")
+    private val commentsCollection = firestore.collection("comments")
     
     fun getCateringItemsByCategory(category: String): Flow<List<CateringItem>> = callbackFlow {
         val snapshotListener = cateringCollection
@@ -184,5 +187,74 @@ class FirebaseRepository {
             .whereEqualTo("userId", userId)
             .get().await()
         return snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
+    }
+
+    fun getCommentsByItemId(itemId: String): Flow<List<Comment>> = callbackFlow {
+        val listener = commentsCollection
+            .whereEqualTo("itemId", itemId)
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val comments = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(Comment::class.java)?.copy(commentId = doc.id)
+                    }
+                    trySend(comments)
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun addComment(comment: Comment) {
+        val docRef = commentsCollection.document()
+        val commentWithId = comment.copy(commentId = docRef.id)
+        docRef.set(commentWithId).await()
+    }
+
+    fun getLatestComments(limit: Int = 10): Flow<List<Comment>> = callbackFlow {
+        val listener = commentsCollection
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val comments = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(Comment::class.java)?.copy(commentId = doc.id)
+                    }
+                    trySend(comments)
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    // --- CHAT ADMIN ---
+    fun getChatMessages(userId: String): Flow<List<ChatMessage>> = callbackFlow {
+        val messagesCollection = firestore.collection("chat").document(userId).collection("messages")
+        val listener = messagesCollection
+            .orderBy("timestamp")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                if (snapshot != null) {
+                    val messages = snapshot.documents.mapNotNull { doc ->
+                        doc.toObject(ChatMessage::class.java)
+                    }
+                    trySend(messages)
+                }
+            }
+        awaitClose { listener.remove() }
+    }
+
+    suspend fun sendChatMessage(userId: String, message: ChatMessage) {
+        val messagesCollection = firestore.collection("chat").document(userId).collection("messages")
+        messagesCollection.add(message).await()
     }
 }

@@ -36,7 +36,18 @@ import com.example.foca.data.model.UserProfile
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.FormatQuote
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.ui.draw.clip
+import com.example.foca.data.model.Comment
+import java.util.Date
+//noinspection UsingMaterialAndMaterial3Libraries
+import androidx.compose.material.OutlinedTextField
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 
 @Composable
 fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = null, owner: UserProfile? = null) {
@@ -44,52 +55,68 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
-    var quantity = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(1) }
+    val userName = FirebaseAuth.getInstance().currentUser?.displayName ?: ""
+    val userPhotoUrl = FirebaseAuth.getInstance().currentUser?.photoUrl?.toString() ?: ""
+    var quantity = remember { mutableStateOf(1) }
+    var commentText by remember { mutableStateOf("") }
+    var commentRating by remember { mutableStateOf(5) }
+    val comments by viewModel.comments.collectAsState()
+    val isLoggedIn = userId != null
+    LaunchedEffect(item.id) {
+        viewModel.loadComments(item.id)
+    }
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFFFDFBF7))) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(0.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                Card(
-                    shape = RoundedCornerShape(24.dp),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    modifier = Modifier.fillMaxWidth()
+                // Gambar menu
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(260.dp)
+                        .padding(top = 18.dp, start = 18.dp, end = 18.dp)
                 ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(item.imageUrl),
-                        contentDescription = item.title,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(220.dp),
-                        contentScale = ContentScale.Crop
-                    )
+                    Card(
+                        shape = RoundedCornerShape(32.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(item.imageUrl),
+                            contentDescription = item.title,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(18.dp))
+                // Judul & info
                 Text(
                     text = item.title,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.ExtraBold,
                     fontFamily = PoppinsFont,
-                    color = Color.Black,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
-                Text(
-                    text = item.category ?: "",
-                    fontSize = 14.sp,
-                    color = Color(0xFFFCB507),
-                    fontFamily = PoppinsFont,
-                    modifier = Modifier.padding(bottom = 8.dp)
+                    color = Color(0xFF222222),
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = item.category ?: "",
+                        fontSize = 14.sp,
+                        color = Color(0xFFFCB507),
+                        fontFamily = PoppinsFont,
+                        modifier = Modifier.padding(end = 10.dp)
+                    )
                     Text(
                         text = "⭐ ${item.rating ?: 0.0}",
                         fontSize = 15.sp,
                         color = Color(0xFFFFA000),
                         fontFamily = PoppinsFont,
-                        modifier = Modifier.padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 10.dp)
                     )
                     Text(
                         text = formatRupiah(item.price),
@@ -99,26 +126,35 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                         fontFamily = PoppinsFont
                     )
                 }
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = item.description,
-                    fontSize = 15.sp,
-                    color = Color.DarkGray,
-                    fontFamily = PoppinsFont,
-                    modifier = Modifier.padding(bottom = 18.dp)
-                )
+                Spacer(modifier = Modifier.height(14.dp))
+                // Deskripsi
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    elevation = CardDefaults.cardElevation(2.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp)
+                ) {
+                    Text(
+                        text = item.description,
+                        fontSize = 15.sp,
+                        color = Color.DarkGray,
+                        fontFamily = PoppinsFont,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(18.dp))
                 // Info Catering Owner
                 if (owner != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp, start = 18.dp, end = 18.dp)) {
                         Image(
                             painter = rememberAsyncImagePainter(owner.photoUrl),
                             contentDescription = "Owner Photo",
-                            modifier = Modifier.size(36.dp).clip(CircleShape).background(Color.White, CircleShape),
+                            modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White, CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(owner.name, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                            Text(owner.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                             Text(owner.email, fontSize = 13.sp, color = Color.Gray)
                         }
                     }
@@ -126,16 +162,16 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                 // Selector jumlah
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 18.dp)
+                    modifier = Modifier.padding(bottom = 18.dp, top = 8.dp)
                 ) {
                     IconButton(onClick = { if (quantity.value > 1) quantity.value-- }) {
                         Icon(Icons.Filled.Remove, contentDescription = "Kurangi")
                     }
                     Text(
                         text = quantity.value.toString(),
-                        fontSize = 18.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(32.dp),
+                        modifier = Modifier.width(36.dp),
                         color = Color.Black
                     )
                     IconButton(onClick = { quantity.value++ }) {
@@ -159,29 +195,118 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                         }
                         onAddToCart?.invoke(item)
                     },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth().height(52.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 18.dp)
                 ) {
-                    Text(text = "Tambah ke Keranjang", fontSize = 18.sp, fontFamily = PoppinsFont)
+                    Text(text = "Tambah ke Keranjang", fontSize = 19.sp, fontFamily = PoppinsFont, fontWeight = FontWeight.Bold)
                 }
-                Spacer(modifier = Modifier.height(18.dp))
-                // Komentar & Rating (dummy)
-                Text("Komentar & Rating", fontWeight = FontWeight.Bold, fontSize = 18.sp, modifier = Modifier.padding(bottom = 8.dp))
-            }
-            items(listOf(
-                Pair("Makanan enak dan pengiriman cepat!", 5),
-                Pair("Porsi banyak, recommended.", 4),
-                Pair("Rasa oke, harga terjangkau.", 4)
-            )) { (comment, rating) ->
-                Card(
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    Row(modifier = Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text("⭐".repeat(rating), color = Color(0xFFFFA000), fontSize = 14.sp, modifier = Modifier.width(50.dp))
-                        Text(comment, fontSize = 14.sp, color = Color.DarkGray)
+                Spacer(modifier = Modifier.height(24.dp))
+                // Komentar & Rating
+                Text("Komentar & Rating", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 10.dp, start = 18.dp))
+                // Form komentar
+                if (isLoggedIn) {
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(2.dp),
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp)
+                    ) {
+                        Column(Modifier.padding(14.dp)) {
+                            Text("Tulis Komentar Anda", fontWeight = FontWeight.Medium, fontFamily = PoppinsFont, fontSize = 15.sp)
+                            OutlinedTextField(
+                                value = commentText,
+                                onValueChange = { commentText = it },
+                                placeholder = { Text("Tulis komentar...", fontFamily = PoppinsFont) },
+                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                                singleLine = false,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("Rating:", fontFamily = PoppinsFont, fontSize = 14.sp)
+                                Spacer(Modifier.width(8.dp))
+                                for (i in 1..5) {
+                                    IconButton(onClick = { commentRating = i }) {
+                                        Icon(
+                                            imageVector = if (i <= commentRating) Icons.Filled.Star else Icons.Filled.Star,
+                                            contentDescription = null,
+                                            tint = if (i <= commentRating) Color(0xFFFFA000) else Color(0xFFE0E0E0),
+                                            modifier = Modifier.size(22.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.weight(1f))
+                                Button(
+                                    onClick = {
+                                        if (commentText.isNotBlank()) {
+                                            val comment = Comment(
+                                                itemId = item.id,
+                                                userId = userId ?: "",
+                                                userName = userName,
+                                                userPhotoUrl = userPhotoUrl,
+                                                text = commentText,
+                                                rating = commentRating,
+                                                timestamp = Date().time
+                                            )
+                                            viewModel.addComment(comment)
+                                            commentText = ""
+                                            commentRating = 5
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Komentar berhasil dikirim!")
+                                            }
+                                        }
+                                    },
+                                    shape = RoundedCornerShape(10.dp),
+                                    enabled = commentText.isNotBlank()
+                                ) {
+                                    Text("Kirim", fontFamily = PoppinsFont)
+                                }
+                            }
+                        }
+                    }
+                }
+                // Komentar quote style
+                Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
+                    if (comments.isEmpty()) {
+                        Text("Belum ada komentar.", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
+                    } else {
+                        comments.sortedByDescending { it.timestamp }.forEach { comment ->
+                            Card(
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+                                elevation = CardDefaults.cardElevation(0.dp),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+                            ) {
+                                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Filled.FormatQuote, contentDescription = null, tint = Color(0xFFFCB507), modifier = Modifier.size(22.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(comment.text, fontFamily = PoppinsFont, fontSize = 15.sp, color = Color(0xFF222222))
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            repeat(comment.rating) {
+                                                Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
+                                            }
+                                            if (comment.rating < 5) {
+                                                repeat(5 - comment.rating) {
+                                                    Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(16.dp))
+                                                }
+                                            }
+                                            Spacer(Modifier.width(8.dp))
+                                            Text("oleh ${comment.userName}", fontSize = 12.sp, color = Color.Gray)
+                                        }
+                                    }
+                                    if (comment.userPhotoUrl.isNotBlank()) {
+                                        Spacer(Modifier.width(8.dp))
+                                        Image(
+                                            painter = rememberAsyncImagePainter(comment.userPhotoUrl),
+                                            contentDescription = "User Photo",
+                                            modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White, CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

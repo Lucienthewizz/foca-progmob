@@ -40,7 +40,7 @@ object Routes {
 }
 
 @Composable
-fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? = null, userId: String? = null) {
+fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? = null, userId: String? = null, onLogout: (() -> Unit)? = null) {
     val profileViewModel: ProfileViewModel = viewModel()
     val profileState = profileViewModel.profile.collectAsState()
     if (!userId.isNullOrEmpty()) {
@@ -60,7 +60,7 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
         composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
         composable(BottomNavItem.Cart.route) { CartScreen(navController) }
         composable(BottomNavItem.Chat.route) { ChatScreen(navController) }
-        composable(BottomNavItem.Profile.route) { ProfileScreen(navController, userId) }
+        composable(BottomNavItem.Profile.route) { ProfileScreen(navController, userId, onLogout) }
 
         // New composable route for DetailScreen
         composable(
@@ -83,19 +83,13 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
         }
 
         // New composable route for PaymentScreen
-        composable("payment/{address}/{note}/{date}/{total}",
+        composable("payment/{total}",
             arguments = listOf(
-                navArgument("address") { type = NavType.StringType },
-                navArgument("note") { type = NavType.StringType },
-                navArgument("date") { type = NavType.StringType },
                 navArgument("total") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val address = backStackEntry.arguments?.getString("address") ?: ""
-            val note = backStackEntry.arguments?.getString("note") ?: ""
-            val date = backStackEntry.arguments?.getString("date") ?: ""
             val total = backStackEntry.arguments?.getString("total")?.toDoubleOrNull() ?: 0.0
-            PaymentScreen(address, note, date, total, onConfirm = {}, navController = navController)
+            PaymentScreen(total = total, navController = navController)
         }
         composable("home?paymentSuccess={paymentSuccess}", arguments = listOf(
             navArgument("paymentSuccess") { type = NavType.StringType; defaultValue = "false" }
