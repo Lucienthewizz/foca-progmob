@@ -33,6 +33,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,14 +50,21 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.foca.data.viewmodel.ProfileViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material3.AlertDialog
+import com.example.foca.R
 
 @Composable
-fun ProfileScreen(navController: NavController, userId: String? = null) {
+fun ProfileScreen(navController: NavController, userId: String? = null, onLogout: (() -> Unit)? = null) {
     val viewModel: ProfileViewModel = viewModel()
     val uid = userId ?: ""
     val profileState = viewModel.profile.collectAsState()
     val ordersState = viewModel.orders.collectAsState()
+    val context = LocalContext.current
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(uid) {
         if (uid.isNotEmpty()) {
@@ -64,6 +75,13 @@ fun ProfileScreen(navController: NavController, userId: String? = null) {
 
     val profile = profileState.value
     val orders = ordersState.value
+
+    // Inisialisasi GoogleSignInClient
+    val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+        .requestIdToken(context.getString(R.string.default_web_client_id))
+        .requestEmail()
+        .build()
+    val googleSignInClient = GoogleSignIn.getClient(context, gso)
 
     Column(
         modifier = Modifier
@@ -135,10 +153,40 @@ fun ProfileScreen(navController: NavController, userId: String? = null) {
             ProfileMenuItem(icon = Icons.Filled.Edit, text = "Edit Profile", onClick = { /* TODO: Edit profile */ })
             ProfileMenuItem(icon = Icons.Filled.Bookmark, text = "Saved", onClick = { /* TODO: Saved */ })
             Divider(modifier = Modifier.padding(vertical = 2.dp))
-            ProfileMenuItem(icon = Icons.Filled.ExitToApp, text = "Log Out", textColor = Color.Red, onClick = {
-                FirebaseAuth.getInstance().signOut()
-                navController.navigate("login") { popUpTo(0) { inclusive = true } }
-            })
+            ProfileMenuItem(
+                icon = Icons.Filled.ExitToApp,
+                text = "Log Out",
+                textColor = Color.Red,
+                onClick = {
+                    showLogoutDialog = true
+                }
+            )
+        }
+        if (showLogoutDialog) {
+            AlertDialog(
+                onDismissRequest = { showLogoutDialog = false },
+                title = { Text("Konfirmasi Logout") },
+                text = { Text("Apakah Anda yakin ingin logout?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showLogoutDialog = false
+                        FirebaseAuth.getInstance().signOut()
+                        googleSignInClient.signOut().addOnCompleteListener {
+                            onLogout?.invoke()
+                            navController.navigate("login") {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
+                    }) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLogoutDialog = false }) {
+                        Text("No")
+                    }
+                }
+            )
         }
         // Riwayat Pemesanan
         Spacer(modifier = Modifier.height(18.dp))

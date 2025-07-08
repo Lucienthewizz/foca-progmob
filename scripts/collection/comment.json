@@ -1,0 +1,29 @@
+{
+  "comment1": {
+    "itemId": "item1",
+    "userId": "user1",
+    "userName": "Andi Wijaya",
+    "userPhotoUrl": "",
+    "text": "Makanannya enak dan pengiriman cepat!",
+    "rating": 5,
+    "timestamp": 1718000000000
+  },
+  "comment2": {
+    "itemId": "item2",
+    "userId": "user2",
+    "userName": "Siti Rahma",
+    "userPhotoUrl": "",
+    "text": "Porsi banyak, recommended.",
+    "rating": 4,
+    "timestamp": 1718000001000
+  },
+  "comment3": {
+    "itemId": "item1",
+    "userId": "user3",
+    "userName": "Budi Santoso",
+    "userPhotoUrl": "",
+    "text": "Rasa oke, harga terjangkau.",
+    "rating": 4,
+    "timestamp": 1718000002000
+  }
+} 

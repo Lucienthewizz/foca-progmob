@@ -53,7 +53,8 @@ class MainActivity : ComponentActivity() {
                 ) {
                     MainApp(
                         onGoogleSignIn = { launchGoogleSignIn { uid -> userId = uid } },
-                        userId = userId
+                        userId = userId,
+                        onLogout = { userId = null }
                     )
                 }
             }

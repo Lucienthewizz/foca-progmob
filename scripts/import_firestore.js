@@ -16,7 +16,8 @@ const collections = [
   { name: 'catering_items', file: 'catering_items.json', key: 'catering_items' },
   { name: 'cart', file: 'cart.json', key: 'cart' },
   { name: 'chat', file: 'chat.json', key: 'chat' },
-  { name: 'profile', file: 'profile.json', key: 'profile' }
+  { name: 'profile', file: 'profile.json', key: 'profile' },
+  { name: 'comments', file: 'comment.json', key: null }
 ];
 
 async function importCollection(collectionName, objects) {
@@ -29,7 +30,11 @@ async function importCollection(collectionName, objects) {
 (async () => {
   for (const col of collections) {
     const data = require(path.resolve(__dirname, 'collection', col.file));
-    await importCollection(col.name, data[col.key]);
+    if (col.key) {
+      await importCollection(col.name, data[col.key]);
+    } else {
+      await importCollection(col.name, data);
+    }
   }
   console.log('All collections imported!');
   process.exit(0);

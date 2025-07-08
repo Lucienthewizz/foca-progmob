@@ -2,6 +2,7 @@ package com.example.foca.ui
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -11,10 +12,19 @@ import com.example.foca.ui.nav.AppNavHost
 import com.example.foca.ui.nav.Routes
 
 @Composable
-fun MainApp(onGoogleSignIn: (() -> Unit)? = null, userId: String? = null) {
+fun MainApp(onGoogleSignIn: (() -> Unit)? = null, userId: String? = null, onLogout: (() -> Unit)? = null) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Jika userId null, langsung ke LoginScreen dan clear stack
+    if (userId.isNullOrEmpty() && currentRoute != Routes.LOGIN) {
+        LaunchedEffect(Unit) {
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
 
     // Tampilkan BottomBar hanya jika bukan di Loading atau Login
     val showBottomBar = currentRoute != Routes.LOADING && currentRoute != Routes.LOGIN
@@ -26,11 +36,16 @@ fun MainApp(onGoogleSignIn: (() -> Unit)? = null, userId: String? = null) {
                 .weight(1f)
                 .fillMaxWidth()
         ) {
-            AppNavHost(navController = navController, onGoogleSignIn = onGoogleSignIn, userId = userId)
+            AppNavHost(
+                navController = navController,
+                onGoogleSignIn = onGoogleSignIn,
+                userId = userId,
+                onLogout = onLogout
+            )
         }
 
         // Bottom navigation bar
-        if (showBottomBar) {
+        if (showBottomBar && !userId.isNullOrEmpty()) {
             BottomNavigationBar(navController = navController)
         }
     }

@@ -397,29 +397,14 @@ fun CartScreen(navController: NavController) {
                     OrderSummaryCard(total = total, itemCount = cartItems.sumOf { it.quantity })
                     Spacer(Modifier.height(16.dp))
                     Button(
-                        onClick = { showDialog = true },
+                        onClick = {
+                            navController.navigate("payment/$total")
+                        },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Checkout", fontFamily = PoppinsFont)
                     }
                 }
-            }
-
-            if (showDialog) {
-                CheckoutDialog(address, note, date, { address = it }, { note = it }, { date = it }, {
-                    if (address.isBlank() || note.isBlank() || date.isBlank()) {
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar("Alamat, catatan, dan tanggal tidak boleh kosong!")
-                        }
-                    } else {
-                        val encodedAddress = URLEncoder.encode(address, "utf-8")
-                        val encodedNote = URLEncoder.encode(note, "utf-8")
-                        navController.navigate("payment/$encodedAddress/$encodedNote/$date/$total")
-                        showDialog = false
-                    }
-                }, {
-                    showDialog = false
-                })
             }
 
             if (showClearCartDialog) {

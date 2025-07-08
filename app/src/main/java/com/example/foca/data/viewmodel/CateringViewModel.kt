@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.foca.data.model.CateringItem
+import com.example.foca.data.model.Comment
 import com.example.foca.data.repository.FirebaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,12 @@ class CateringViewModel : ViewModel() {
     val recommendedMenus: StateFlow<List<CateringItem>> = _recommendedMenus.asStateFlow()
     private val _favoriteMenus = MutableStateFlow<List<CateringItem>>(emptyList())
     val favoriteMenus: StateFlow<List<CateringItem>> = _favoriteMenus.asStateFlow()
+    
+    private val _comments = MutableStateFlow<List<Comment>>(emptyList())
+    val comments: StateFlow<List<Comment>> = _comments.asStateFlow()
+    
+    private val _latestComments = MutableStateFlow<List<Comment>>(emptyList())
+    val latestComments: StateFlow<List<Comment>> = _latestComments.asStateFlow()
     
     init {
         loadRecommendedItems()
@@ -104,6 +111,28 @@ class CateringViewModel : ViewModel() {
                 onSuccess?.invoke()
             } catch (e: Exception) {
                 onError?.invoke(e)
+            }
+        }
+    }
+    
+    fun loadComments(itemId: String) {
+        viewModelScope.launch {
+            repository.getCommentsByItemId(itemId).collect { list ->
+                _comments.value = list
+            }
+        }
+    }
+    
+    fun addComment(comment: Comment) {
+        viewModelScope.launch {
+            repository.addComment(comment)
+        }
+    }
+    
+    fun loadLatestComments(limit: Int = 10) {
+        viewModelScope.launch {
+            repository.getLatestComments(limit).collect { list ->
+                _latestComments.value = list
             }
         }
     }

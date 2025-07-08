@@ -50,13 +50,17 @@ import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Star
+import com.example.foca.data.model.Comment
 
 
 @Composable
@@ -77,10 +81,12 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
     val sortOptions = listOf("Default", "Harga Termurah", "Rating Tertinggi")
     val ratingOptions = listOf(0.0, 3.0, 4.0, 4.5, 5.0)
     var showSuccessDialog by remember { mutableStateOf(paymentSuccess) }
+    val latestComments by viewModel.latestComments.collectAsState()
     LaunchedEffect(Unit) {
         viewModel.loadAllCateringItems()
         viewModel.loadRecommendedMenus()
         viewModel.loadFavoriteMenus()
+        viewModel.loadLatestComments(10)
     }
     Box(
         modifier = Modifier
@@ -143,226 +149,258 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                 SearchFilterComponent(
                     searchQuery = searchQuery,
                     onSearchQueryChange = { setSearchQuery(it) },
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = { setSelectedCategory(it) },
-                    selectedRating = selectedRating,
-                    onRatingSelected = { setSelectedRating(it) },
-                    sortOption = sortOption,
-                    onSortOptionSelected = { setSortOption(it) },
-                    categoryOptions = categoryOptions,
-                    ratingOptions = ratingOptions,
-                    sortOptions = sortOptions,
-                    onResetFilters = {
-                         setSelectedCategory("Semua")
-                         setSelectedRating(0.0)
-                         setSortOption("Default")
-                     },
+                    selectedCategory = "",
+                    onCategorySelected = {},
+                    selectedRating = 0.0,
+                    onRatingSelected = {},
+                    sortOption = "",
+                    onSortOptionSelected = {},
+                    categoryOptions = emptyList(),
+                    ratingOptions = emptyList(),
+                    sortOptions = emptyList(),
+                    onResetFilters = {},
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            // Debug info (sementara)
-            // val filteredItems = if (searchQuery.isBlank()) allItems else allItems.filter { item ->
-            //     val query = searchQuery.trim().lowercase()
-            //     (item.title.lowercase().contains(query)) ||
-            //     (item.description.lowercase().contains(query))
-            // }
-            // Text(text = "Query: $searchQuery | Hasil: ${filteredItems.size}", fontSize = 12.sp, color = Color.Gray)
-            // Kategori: Daily & Event
             Spacer(modifier = Modifier.height(24.dp))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                CategoryCard(
-                    title = "Daily",
-                    imageRes = R.drawable.ic_sandwich,
-                    modifier = Modifier.weight(1f).padding(end = 6.dp).height(199.dp),
-                    onClick = { navController.navigate(Routes.CATERING_DAILY) }
-                )
-                CategoryCard(
-                    title = "Event",
-                    imageRes = R.drawable.ic_stand,
-                    modifier = Modifier.weight(1f).padding(start = 6.dp).height(199.dp),
-                    onClick = { navController.navigate(Routes.CATERING_EVENT)}
-                )
-            }
-            // Rekomendasi Menu
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            if (searchQuery.isNotBlank()) {
+                // Hanya tampilkan hasil pencarian
                 Text(
-                    text = "Rekomendasi Menu",
+                    text = "Hasil Pencarian",
                     fontFamily = PoppinsFont,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     color = Color(0xFF222222)
                 )
-                Spacer(modifier = Modifier.weight(1f))
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFFFCB507))
+                Spacer(modifier = Modifier.height(12.dp))
+                val filteredItems = allItems.filter { item ->
+                    val query = searchQuery.trim().lowercase()
+                    item.title.lowercase().contains(query) || item.description.lowercase().contains(query)
                 }
-            } else if (recommendedMenus.isEmpty()) {
-                Text("Tidak ada rekomendasi.", color = Color.Gray)
-            } else {
-                LazyRow(modifier = Modifier.fillMaxWidth()) {
-                    items(recommendedMenus) { item ->
-                        FoodCard(
-                            item = item,
-                            modifier = Modifier.padding(end = 14.dp),
-                            onClick = {
-                                navController.navigate("detail/${item.id}")
-                            },
-                            onAddToCart = {
-                                if (userId != null) {
-                                    viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFCB507))
+                    }
+                } else if (filteredItems.isEmpty()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_search),
+                            contentDescription = "Tidak ada hasil",
+                            modifier = Modifier.size(120.dp).padding(top = 24.dp)
+                        )
+                        Text("Tidak ada menu yang sesuai.", color = Color.Gray, fontSize = 16.sp, modifier = Modifier.padding(top = 12.dp))
+                    }
+                } else {
+                    LazyRow(modifier = Modifier.fillMaxWidth()) {
+                        items(filteredItems) { item ->
+                            FoodCard(
+                                item = item,
+                                modifier = Modifier.padding(end = 14.dp),
+                                onClick = {
+                                    navController.navigate("detail/${item.id}")
+                                },
+                                onAddToCart = {
+                                    if (userId != null) {
+                                        viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            }
+                                        })
+                                    } else {
                                         coroutineScope.launch {
-                                            snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                         }
-                                    })
-                                } else {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-            }
-            // Bagian Promosi
-            Spacer(modifier = Modifier.height(28.dp))
-            val samplePromotions = listOf(
-                PromotionData(
-                    id = "promo1",
-                    title = "Diskon 20% Paket Harian",
-                    description = "Pesan paket harian untuk 1 minggu dan dapatkan diskon 20%",
-                    imageRes = R.drawable.ic_restaurant
-                ),
-                PromotionData(
-                    id = "promo2",
-                    title = "Gratis Pengiriman",
-                    description = "Nikmati gratis biaya pengiriman untuk pemesanan di atas Rp200.000",
-                    imageRes = R.drawable.ic_restaurant
-                ),
-                PromotionData(
-                    id = "promo3",
-                    title = "Paket Hemat Keluarga",
-                    description = "Pesan paket keluarga dan hemat hingga 30% dari harga normal",
-                    imageRes = R.drawable.ic_restaurant
+            } else {
+                // Kategori: Daily & Event
+                Spacer(modifier = Modifier.height(24.dp))
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    CategoryCard(
+                        title = "Daily",
+                        imageRes = R.drawable.ic_sandwich,
+                        modifier = Modifier.weight(1f).padding(end = 6.dp).height(199.dp),
+                        onClick = { navController.navigate(Routes.CATERING_DAILY) }
+                    )
+                    CategoryCard(
+                        title = "Event",
+                        imageRes = R.drawable.ic_stand,
+                        modifier = Modifier.weight(1f).padding(start = 6.dp).height(199.dp),
+                        onClick = { navController.navigate(Routes.CATERING_EVENT)}
+                    )
+                }
+                // Rekomendasi Menu
+                Spacer(modifier = Modifier.height(32.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Rekomendasi Menu",
+                        fontFamily = PoppinsFont,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = Color(0xFF222222)
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFCB507))
+                    }
+                } else if (recommendedMenus.isEmpty()) {
+                    Text("Tidak ada rekomendasi.", color = Color.Gray)
+                } else {
+                    LazyRow(modifier = Modifier.fillMaxWidth()) {
+                        items(recommendedMenus) { item ->
+                            FoodCard(
+                                item = item,
+                                modifier = Modifier.padding(end = 14.dp),
+                                onClick = {
+                                    navController.navigate("detail/${item.id}")
+                                },
+                                onAddToCart = {
+                                    if (userId != null) {
+                                        viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            }
+                                        })
+                                    } else {
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
+                                        }
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+                // Bagian Promosi
+                Spacer(modifier = Modifier.height(28.dp))
+                val samplePromotions = listOf(
+                    PromotionData(
+                        id = "promo1",
+                        title = "Diskon 20% Paket Harian",
+                        description = "Pesan paket harian untuk 1 minggu dan dapatkan diskon 20%",
+                        imageRes = R.drawable.ic_restaurant
+                    ),
+                    PromotionData(
+                        id = "promo2",
+                        title = "Gratis Pengiriman",
+                        description = "Nikmati gratis biaya pengiriman untuk pemesanan di atas Rp200.000",
+                        imageRes = R.drawable.ic_restaurant
+                    ),
+                    PromotionData(
+                        id = "promo3",
+                        title = "Paket Hemat Keluarga",
+                        description = "Pesan paket keluarga dan hemat hingga 30% dari harga normal",
+                        imageRes = R.drawable.ic_restaurant
+                    )
                 )
-            )
-            
-            PromotionSection(
-                promotions = samplePromotions,
-                onPromotionClick = { promo ->
-                    // Handle promotion click
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Promo ${promo.title} dipilih")
+                
+                PromotionSection(
+                    promotions = samplePromotions,
+                    onPromotionClick = { promo ->
+                        // Handle promotion click
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Promo ${promo.title} dipilih")
+                        }
                     }
-                }
-            )
-            
-            // Paket Katering Favorit Minggu Ini
-            Spacer(modifier = Modifier.height(28.dp))
-            Text(
-                text = "Paket Katering Favorit Minggu Ini 🍒",
-                fontFamily = PoppinsFont,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFF222222)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFFFCB507))
-                }
-            } else if (favoriteMenus.isEmpty()) {
-                Text("Tidak ada paket favorit.", color = Color.Gray)
-            } else {
-                LazyRow(modifier = Modifier.fillMaxWidth()) {
-                    items(favoriteMenus) { item ->
-                        FoodCard(
-                            item = item,
-                            modifier = Modifier.padding(end = 14.dp),
-                            onClick = {
-                                navController.navigate("detail/${item.id}")
-                            },
-                            onAddToCart = {
-                                if (userId != null) {
-                                    viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                )
+                
+                // Paket Katering Favorit Minggu Ini
+                Spacer(modifier = Modifier.height(28.dp))
+                Text(
+                    text = "Paket Katering Favorit Minggu Ini 🍒",
+                    fontFamily = PoppinsFont,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF222222)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFCB507))
+                    }
+                } else if (favoriteMenus.isEmpty()) {
+                    Text("Tidak ada paket favorit.", color = Color.Gray)
+                } else {
+                    LazyRow(modifier = Modifier.fillMaxWidth()) {
+                        items(favoriteMenus) { item ->
+                            FoodCard(
+                                item = item,
+                                modifier = Modifier.padding(end = 14.dp),
+                                onClick = {
+                                    navController.navigate("detail/${item.id}")
+                                },
+                                onAddToCart = {
+                                    if (userId != null) {
+                                        viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            }
+                                        })
+                                    } else {
                                         coroutineScope.launch {
-                                            snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                         }
-                                    })
-                                } else {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
-            }
-            // Filter & Sort UI sudah dipindahkan ke komponen terpisah
-            // Semua Menu
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = "Semua Menu",
-                fontFamily = PoppinsFont,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFF222222)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            var filteredItems = if (searchQuery.isBlank()) allItems else allItems.filter { item ->
-                val query = searchQuery.trim().lowercase()
-                (item.title.lowercase().contains(query)) ||
-                (item.description.lowercase().contains(query))
-            }
-            // Filter kategori
-            filteredItems = if (selectedCategory == "Semua") filteredItems else filteredItems.filter { it.category == selectedCategory }
-            // Filter rating
-            filteredItems = if (selectedRating == 0.0) filteredItems else filteredItems.filter { (it.rating ?: 0.0) >= selectedRating }
-            // Sort
-            filteredItems = when (sortOption) {
-                "Harga Termurah" -> filteredItems.sortedBy { it.price }
-                "Rating Tertinggi" -> filteredItems.sortedByDescending { it.rating ?: 0.0 }
-                else -> filteredItems
-            }
-            // Hapus debug text
-            if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = Color(0xFFFCB507))
-                }
-            } else if (filteredItems.isEmpty()) {
-                Text("Tidak ada menu.", color = Color.Gray)
-            } else {
-                LazyRow(modifier = Modifier.fillMaxWidth()) {
-                    items(filteredItems) { item ->
-                        FoodCard(
-                            item = item,
-                            modifier = Modifier.padding(end = 14.dp),
-                            onClick = {
-                                navController.navigate("detail/${item.id}")
-                            },
-                            onAddToCart = {
-                                if (userId != null) {
-                                    viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                // Filter & Sort UI sudah dipindahkan ke komponen terpisah
+                // Semua Menu
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = "Semua Menu",
+                    fontFamily = PoppinsFont,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF222222)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                var filteredItems = allItems
+                if (isLoading) {
+                    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = Color(0xFFFCB507))
+                    }
+                } else if (filteredItems.isEmpty()) {
+                    Text("Tidak ada menu.", color = Color.Gray)
+                } else {
+                    LazyRow(modifier = Modifier.fillMaxWidth()) {
+                        items(filteredItems) { item ->
+                            FoodCard(
+                                item = item,
+                                modifier = Modifier.padding(end = 14.dp),
+                                onClick = {
+                                    navController.navigate("detail/${item.id}")
+                                },
+                                onAddToCart = {
+                                    if (userId != null) {
+                                        viewModel.addToCart(userId, item.id ?: "", onSuccess = {
+                                            coroutineScope.launch {
+                                                snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            }
+                                        })
+                                    } else {
                                         coroutineScope.launch {
-                                            snackbarHostState.showSnackbar("Berhasil ditambahkan ke keranjang!")
+                                            snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                         }
-                                    })
-                                } else {
-                                    coroutineScope.launch {
-                                        snackbarHostState.showSnackbar("Silakan login terlebih dahulu.")
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -376,25 +414,51 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                 color = Color(0xFF222222)
             )
             Spacer(modifier = Modifier.height(8.dp))
-            Column(modifier = Modifier.fillMaxWidth()) {
-                CateringTestimonialCard(
-                    userName = "Andi Wijaya",
-                    userPhotoUrl = null,
-                    testimonial = "Makanannya enak, pengiriman cepat, dan pelayanan ramah! Saya sangat puas dengan layanan katering ini dan akan merekomendasikannya kepada teman-teman.",
-                    rating = 5f
-                )
-                CateringTestimonialCard(
-                    userName = "Siti Rahma",
-                    userPhotoUrl = null,
-                    testimonial = "Paket katering ulang tahun anak sangat lengkap dan anak-anak suka! Dekorasi dan presentasi makanan sangat menarik dan sesuai dengan tema yang diminta.",
-                    rating = 4.5f
-                )
-                CateringTestimonialCard(
-                    userName = "Budi Santoso",
-                    userPhotoUrl = null,
-                    testimonial = "Harga terjangkau, rasa mantap, pasti order lagi. Porsinya juga pas dan variasi menu cukup banyak sehingga tidak membosankan.",
-                    rating = 4.8f
-                )
+            if (latestComments.isEmpty()) {
+                Text("Belum ada testimoni.", color = Color.Gray, fontSize = 14.sp)
+            } else {
+                // Auto-slide carousel (jika tidak bisa, pakai LazyRow biasa)
+                LazyRow(modifier = Modifier.fillMaxWidth()) {
+                    items(latestComments) { comment ->
+                        Card(
+                            shape = RoundedCornerShape(18.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
+                            elevation = CardDefaults.cardElevation(0.dp),
+                            modifier = Modifier
+                                .width(320.dp)
+                                .padding(end = 14.dp)
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Filled.FormatQuote, contentDescription = null, tint = Color(0xFFFCB507), modifier = Modifier.size(22.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Column(Modifier.weight(1f)) {
+                                    Text(comment.text, fontFamily = PoppinsFont, fontSize = 15.sp, color = Color(0xFF222222))
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        repeat(comment.rating) {
+                                            Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
+                                        }
+                                        if (comment.rating < 5) {
+                                            repeat(5 - comment.rating) {
+                                                Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(16.dp))
+                                            }
+                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("oleh ${comment.userName}", fontSize = 12.sp, color = Color.Gray)
+                                    }
+                                }
+                                if (comment.userPhotoUrl.isNotBlank()) {
+                                    Spacer(Modifier.width(8.dp))
+                                    Image(
+                                        painter = rememberAsyncImagePainter(comment.userPhotoUrl),
+                                        contentDescription = "User Photo",
+                                        modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White, CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
