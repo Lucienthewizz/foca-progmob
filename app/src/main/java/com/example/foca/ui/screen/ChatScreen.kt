@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import coil.compose.AsyncImage
 import com.example.foca.data.viewmodel.ProfileViewModel
+import com.example.foca.ui.theme.PoppinsFont
 
 @Composable
 fun ChatScreen(navController: NavController, userId: String = "user1", sender: String = "user") {
@@ -61,32 +62,38 @@ fun ChatScreen(navController: NavController, userId: String = "user1", sender: S
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFFFDFBF7))
                 .padding(paddingValues)
         ) {
+            // Header
             Text(
                 text = "Chat Admin",
-                fontSize = 24.sp,
-                color = Color.Black,
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)
+                fontFamily = PoppinsFont,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp,
+                color = Color(0xFF1A1A1A),
+                modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 28.dp, bottom = 16.dp)
             )
+            // Chat area
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp)
-                    .background(Color.White, RoundedCornerShape(16.dp))
+                    .background(Color.White, RoundedCornerShape(18.dp))
+                    .padding(horizontal = 8.dp, vertical = 8.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(8.dp)
-                        .verticalScroll(listState),
+                        .verticalScroll(listState)
+                        .padding(4.dp),
                     verticalArrangement = Arrangement.Bottom
                 ) {
                     if (chatMessages.isEmpty()) {
                         Text(
                             text = "Belum ada pesan.",
                             color = Color.Gray,
+                            fontFamily = PoppinsFont,
                             fontSize = 14.sp,
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
@@ -100,19 +107,28 @@ fun ChatScreen(navController: NavController, userId: String = "user1", sender: S
                     }
                 }
             }
+            // Input bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(12.dp),
+                    .background(Color.White, RoundedCornerShape(24.dp))
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
                     value = inputText,
                     onValueChange = { inputText = it },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Ketik pesan...") },
-                    shape = RoundedCornerShape(24.dp),
-                    maxLines = 3
+                    placeholder = { Text("Ketik pesan...", fontFamily = PoppinsFont, color = Color(0xFF999999)) },
+                    shape = RoundedCornerShape(20.dp),
+                    maxLines = 3,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFFFCB507),
+                        unfocusedBorderColor = Color(0xFFEEEEEE),
+                        focusedContainerColor = Color.White,
+                        unfocusedContainerColor = Color.White
+                    ),
+                    textStyle = androidx.compose.ui.text.TextStyle(fontFamily = PoppinsFont, fontSize = 15.sp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
@@ -123,10 +139,11 @@ fun ChatScreen(navController: NavController, userId: String = "user1", sender: S
                             inputText = TextFieldValue("")
                         }
                     },
-                    shape = RoundedCornerShape(24.dp),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCB507))
                 ) {
-                    Text("Kirim")
+                    Text("Kirim", fontFamily = PoppinsFont, fontWeight = FontWeight.Medium, color = Color.White)
                 }
             }
         }
@@ -155,7 +172,7 @@ fun ChatBubble(message: ChatMessage, isUser: Boolean) {
             Box(
                 modifier = Modifier
                     .background(
-                        color = if (isUser) Color(0xFFDCF8C6) else Color(0xFFF1F0F0),
+                        color = if (isUser) Color(0xFFFCB507) else Color(0xFFF1F0F0),
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(12.dp)
@@ -163,13 +180,15 @@ fun ChatBubble(message: ChatMessage, isUser: Boolean) {
             ) {
                 Text(
                     text = message.text,
-                    color = Color.Black,
-                    fontSize = 16.sp
+                    color = if (isUser) Color.White else Color.Black,
+                    fontFamily = PoppinsFont,
+                    fontSize = 15.sp
                 )
             }
             Text(
                 text = time,
                 color = Color.Gray,
+                fontFamily = PoppinsFont,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(top = 2.dp, end = 4.dp, start = 4.dp)
             )
@@ -204,6 +223,7 @@ fun AvatarCircle(initials: String, photoUrl: String) {
                 text = initials,
                 color = Color.White,
                 fontWeight = FontWeight.Bold,
+                fontFamily = PoppinsFont,
                 fontSize = 16.sp
             )
         }

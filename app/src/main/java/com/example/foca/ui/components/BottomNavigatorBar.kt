@@ -21,7 +21,11 @@ fun BottomNavigationBar(navController: NavHostController) {
 
     NavigationBar(containerColor = Color.White) {
         items.forEach { item ->
-            val selected = currentRoute == item.route
+            val selected = if (item == BottomNavItem.Home) {
+                currentRoute?.startsWith(item.route) == true
+            } else {
+                currentRoute == item.route
+            }
 
             NavigationBarItem(
                 selected = selected,
