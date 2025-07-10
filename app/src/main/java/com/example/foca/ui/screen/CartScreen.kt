@@ -33,7 +33,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.net.URLEncoder
-import androidx.compose.material3.DatePickerDialog
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 
@@ -163,84 +162,115 @@ fun CartItemCard(
 // === OrderSummaryCard ===
 @Composable
 fun OrderSummaryCard(total: Double, itemCount: Int, modifier: Modifier = Modifier) {
-    val gradientBrush = Brush.verticalGradient(listOf(Color(0xFFFFFFFF), Color(0xFFFFF8E1)))
     Card(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
-            .shadow(8.dp, RoundedCornerShape(24.dp))
+            .shadow(8.dp, RoundedCornerShape(20.dp))
     ) {
-        Box(modifier = Modifier.fillMaxWidth().background(gradientBrush)) {
-            Column(modifier = Modifier.padding(24.dp)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Ringkasan Pesanan", fontWeight = FontWeight.Bold, fontFamily = PoppinsFont, fontSize = 20.sp)
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color(0xFFFFF0C4))
-                            .padding(8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Filled.Receipt, null, tint = Color(0xFFFCB507), modifier = Modifier.size(24.dp))
-                    }
-                }
-                Spacer(modifier = Modifier.height(20.dp))
-                Row(
+        Column(modifier = Modifier.padding(24.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Ringkasan Pesanan",
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = PoppinsFont,
+                    fontSize = 20.sp,
+                    color = Color(0xFF1A1A1A)
+                )
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFF5F5F5))
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFF0C4))
+                        .padding(8.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFE0E0E0))
-                                .padding(6.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Outlined.ShoppingBag, null, tint = Color(0xFF757575), modifier = Modifier.size(16.dp))
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Jumlah Item", fontFamily = PoppinsFont, fontSize = 14.sp, color = Color(0xFF757575))
-                    }
-                    Text("$itemCount item", fontFamily = PoppinsFont, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Icon(
+                        Icons.Filled.Receipt,
+                        contentDescription = null,
+                        tint = Color(0xFFFCB507),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
-                Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(Color(0xFFFFF0C4))
-                                .padding(8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Outlined.Payments, null, tint = Color(0xFFFCB507), modifier = Modifier.size(20.dp))
-                        }
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text("Total Harga", fontFamily = PoppinsFont, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                    Text("Rp $total", fontWeight = FontWeight.Bold, color = Color(0xFFFCB507), fontSize = 22.sp)
-                }
+            }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Items count
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Item ($itemCount)",
+                    fontFamily = PoppinsFont,
+                    fontSize = 16.sp,
+                    color = Color(0xFF666666)
+                )
+                Text(
+                    text = formatRupiah(total),
+                    fontFamily = PoppinsFont,
+                    fontSize = 16.sp,
+                    color = Color(0xFF333333)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Delivery fee
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Biaya Kirim",
+                    fontFamily = PoppinsFont,
+                    fontSize = 16.sp,
+                    color = Color(0xFF666666)
+                )
+                Text(
+                    text = formatRupiah(5000.0),
+                    fontFamily = PoppinsFont,
+                    fontSize = 16.sp,
+                    color = Color(0xFF333333)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Divider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Total
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Total",
+                    fontFamily = PoppinsFont,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF1A1A1A)
+                )
+                Text(
+                    text = formatRupiah(total + 5000),
+                    fontFamily = PoppinsFont,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFFCB507)
+                )
             }
         }
     }
@@ -251,58 +281,68 @@ fun OrderSummaryCard(total: Double, itemCount: Int, modifier: Modifier = Modifie
 fun ClearCartDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Kosongkan Keranjang", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold) },
+        shape = RoundedCornerShape(20.dp),
+        title = { 
+            Text(
+                "Kosongkan Keranjang",
+                fontFamily = PoppinsFont,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = Color(0xFF1A1A1A)
+            )
+        },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Icon(Icons.Outlined.DeleteSweep, null, tint = Color.Red, modifier = Modifier.size(48.dp))
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(vertical = 8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(CircleShape)
+                        .background(Color(0xFFFFEEEE)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Outlined.DeleteSweep,
+                        contentDescription = null,
+                        tint = Color(0xFFE53E3E),
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Apakah Anda yakin ingin mengosongkan keranjang?", fontFamily = PoppinsFont, textAlign = TextAlign.Center)
+                Text(
+                    "Apakah Anda yakin ingin mengosongkan keranjang? Tindakan ini tidak dapat dibatalkan.",
+                    fontFamily = PoppinsFont,
+                    textAlign = TextAlign.Center,
+                    color = Color(0xFF666666),
+                    fontSize = 14.sp
+                )
             }
         },
         confirmButton = {
-            Button(onClick = onConfirm, colors = ButtonDefaults.buttonColors(containerColor = Color.Red)) {
-                Text("Kosongkan", fontFamily = PoppinsFont)
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53E3E)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    "Kosongkan",
+                    fontFamily = PoppinsFont,
+                    fontWeight = FontWeight.Medium
+                )
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Batal", fontFamily = PoppinsFont)
-            }
-        }
-    )
-}
-
-@Composable
-fun CheckoutDialog(
-    address: String,
-    note: String,
-    date: String,
-    onAddressChange: (String) -> Unit,
-    onNoteChange: (String) -> Unit,
-    onDateChange: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Checkout Pesanan", fontFamily = PoppinsFont, fontWeight = FontWeight.Bold) },
-        text = {
-            Column {
-                OutlinedTextField(value = address, onValueChange = onAddressChange, label = { Text("Alamat", fontFamily = PoppinsFont) })
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = note, onValueChange = onNoteChange, label = { Text("Catatan", fontFamily = PoppinsFont) })
-                Spacer(modifier = Modifier.height(8.dp))
-                OutlinedTextField(value = date, onValueChange = onDateChange, label = { Text("Tanggal (yyyy-MM-dd)", fontFamily = PoppinsFont) })
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text("Konfirmasi", fontFamily = PoppinsFont)
-            }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
-                Text("Batal", fontFamily = PoppinsFont)
+            OutlinedButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    "Batal",
+                    fontFamily = PoppinsFont,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     )
@@ -331,11 +371,7 @@ fun CartScreen(navController: NavController) {
         } else null
     }
 
-    var showDialog by remember { mutableStateOf(false) }
     var showClearCartDialog by remember { mutableStateOf(false) }
-    var address by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())) }
 
     LaunchedEffect(userId) {
         if (userId != null) {
@@ -360,61 +396,185 @@ fun CartScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Keranjang", fontSize = 22.sp, fontFamily = PoppinsFont) },
+                title = { 
+                    Text(
+                        "Keranjang Saya",
+                        fontSize = 22.sp,
+                        fontFamily = PoppinsFont,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF1A1A1A)
+                    )
+                },
                 actions = {
                     if (cartItems.isNotEmpty()) {
                         IconButton(onClick = { showClearCartDialog = true }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = null, tint = Color.Red)
-                        }
-                    }
-                }
-            )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        Box(Modifier.padding(padding).fillMaxSize()) {
-            when {
-                isLoading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-                cartItems.isEmpty() -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Keranjang kosong", fontFamily = PoppinsFont)
-                }
-                else -> Column(Modifier.padding(16.dp)) {
-                    LazyColumn(modifier = Modifier.weight(1f)) {
-                        items(cartDetails) { (menu, qty, subtotal) ->
-                            CartItemCard(
-                                menu = menu,
-                                quantity = qty,
-                                subtotal = subtotal,
-                                onIncreaseQuantity = { userId?.let { viewModel.updateCartItemQuantity(it, menu.id, qty + 1) } },
-                                onDecreaseQuantity = { userId?.let { viewModel.updateCartItemQuantity(it, menu.id, qty - 1) } },
-                                onRemove = { userId?.let { viewModel.removeCartItem(it, menu.id) } }
+                            Icon(
+                                Icons.Outlined.DeleteSweep,
+                                contentDescription = "Kosongkan keranjang",
+                                tint = Color(0xFFE53E3E)
                             )
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
-                    OrderSummaryCard(total = total, itemCount = cartItems.sumOf { it.quantity })
-                    Spacer(Modifier.height(16.dp))
-                    Button(
-                        onClick = {
-                            navController.navigate("payment/$total")
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.White,
+                    titleContentColor = Color(0xFF1A1A1A)
+                )
+            )
+        },
+        containerColor = Color(0xFFF8F9FA),
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            when {
+                isLoading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("Checkout", fontFamily = PoppinsFont)
+                        CircularProgressIndicator(
+                            color = Color(0xFFFCB507)
+                        )
+                    }
+                }
+                cartItems.isEmpty() -> {
+                    EmptyCartState()
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(cartDetails) { (menu, quantity, subtotal) ->
+                                CartItemCard(
+                                    menu = menu,
+                                    quantity = quantity,
+                                    subtotal = subtotal,
+                                    onIncreaseQuantity = {
+                                        userId?.let { viewModel.updateCartItemQuantity(it, menu.id, quantity + 1) }
+                                    },
+                                    onDecreaseQuantity = {
+                                        if (quantity > 1) {
+                                            userId?.let { viewModel.updateCartItemQuantity(it, menu.id, quantity - 1) }
+                                        }
+                                    },
+                                    onRemove = {
+                                        userId?.let { viewModel.removeCartItem(it, menu.id) }
+                                    }
+                                )
+                            }
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        OrderSummaryCard(
+                            total = total,
+                            itemCount = cartItems.sumOf { it.quantity }
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Button(
+                            onClick = { 
+                                // Navigate to PaymentScreen dengan total
+                                navController.navigate("payment/${total + 5000}")
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFFCB507)
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    Icons.Default.ShoppingCart,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    "Checkout • ${formatRupiah(total + 5000)}",
+                                    fontSize = 16.sp,
+                                    fontFamily = PoppinsFont,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+                        }
                     }
                 }
             }
-
+            
             if (showClearCartDialog) {
-                ClearCartDialog({
-                    userId?.let { viewModel.clearCart(it) }
-                    showClearCartDialog = false
-                }, {
-                    showClearCartDialog = false
-                })
+                ClearCartDialog(
+                    onConfirm = {
+                        userId?.let { viewModel.clearCart(it) }
+                        showClearCartDialog = false
+                    },
+                    onDismiss = { showClearCartDialog = false }
+                )
             }
+        }
+    }
+}
+
+@Composable
+fun EmptyCartState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFF5F5F5)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.ShoppingCart,
+                    contentDescription = null,
+                    tint = Color(0xFFCCCCCC),
+                    modifier = Modifier.size(60.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "Keranjang Anda Kosong",
+                fontFamily = PoppinsFont,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color(0xFF1A1A1A)
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Tambahkan beberapa makanan lezat ke keranjang Anda",
+                fontFamily = PoppinsFont,
+                fontSize = 14.sp,
+                color = Color(0xFF666666),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

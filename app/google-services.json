@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "112396476754-o3qo0m026f4okbik56ten6ib4qm60634.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.foca",
+            "certificate_hash": "2c093ccb612ea06beb02aa0c896d68cda174fb7a"
+          }
+        },
+        {
           "client_id": "112396476754-s2c12jd8ohoe76ur5un9qc971odfl0qa.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

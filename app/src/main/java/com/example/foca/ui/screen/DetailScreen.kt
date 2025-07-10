@@ -1,5 +1,6 @@
 package com.example.foca.ui.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.example.foca.ui.theme.PoppinsFont
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.foca.data.viewmodel.CateringViewModel
@@ -49,6 +51,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 
+
+
 @Composable
 fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = null, owner: UserProfile? = null) {
     val viewModel: CateringViewModel = viewModel()
@@ -62,122 +66,236 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
     var commentRating by remember { mutableStateOf(5) }
     val comments by viewModel.comments.collectAsState()
     val isLoggedIn = userId != null
+    
     LaunchedEffect(item.id) {
         viewModel.loadComments(item.id)
     }
-    Box(modifier = Modifier.fillMaxSize().background(Color(0xFFFDFBF7))) {
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFFDFBF7))
+    ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(0.dp),
+                .padding(bottom = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
-                // Gambar menu
+                // Hero Image Section
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(260.dp)
-                        .padding(top = 18.dp, start = 18.dp, end = 18.dp)
+                        .height(280.dp)
                 ) {
-                    Card(
-                        shape = RoundedCornerShape(32.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 14.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(item.imageUrl),
-                            contentDescription = item.title,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    Image(
+                        painter = rememberAsyncImagePainter(item.imageUrl),
+                        contentDescription = item.title,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
+                        contentScale = ContentScale.Crop
+                    )
                 }
-                Spacer(modifier = Modifier.height(18.dp))
-                // Judul & info
-                Text(
-                    text = item.title,
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontFamily = PoppinsFont,
-                    color = Color(0xFF222222),
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                // Title and Basic Info Section
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
                     Text(
-                        text = item.category ?: "",
-                        fontSize = 14.sp,
-                        color = Color(0xFFFCB507),
+                        text = item.title,
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
                         fontFamily = PoppinsFont,
-                        modifier = Modifier.padding(end = 10.dp)
+                        color = Color(0xFF1A1A1A),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                    Text(
-                        text = "⭐ ${item.rating ?: 0.0}",
-                        fontSize = 15.sp,
-                        color = Color(0xFFFFA000),
-                        fontFamily = PoppinsFont,
-                        modifier = Modifier.padding(end = 10.dp)
-                    )
+                    
+                    // Category and Rating Row
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    ) {
+                        Text(
+                            text = item.category ?: "",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF666666),
+                            fontFamily = PoppinsFont,
+                            modifier = Modifier.padding(end = 16.dp)
+                        )
+                        
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Filled.Star,
+                                contentDescription = null,
+                                tint = Color(0xFFFFA000),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "${item.rating ?: 0.0}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF666666),
+                                fontFamily = PoppinsFont
+                            )
+                        }
+                    }
+                    
+                    // Price
                     Text(
                         text = formatRupiah(item.price),
-                        fontSize = 20.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFFFCB507),
-                        fontFamily = PoppinsFont
+                        fontFamily = PoppinsFont,
+                        modifier = Modifier.padding(bottom = 16.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(14.dp))
-                // Deskripsi
-                Card(
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp)
+            
+            // Description Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "Deskripsi",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = PoppinsFont,
+                    color = Color(0xFF1A1A1A),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                Text(
+                    text = item.description,
+                    fontSize = 15.sp,
+                    color = Color(0xFF666666),
+                    fontFamily = PoppinsFont,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.padding(bottom = 20.dp)
+                )
+            }
+            
+            // Owner Info Section
+            if (owner != null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
                 ) {
                     Text(
-                        text = item.description,
-                        fontSize = 15.sp,
-                        color = Color.DarkGray,
+                        text = "Informasi Catering",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
                         fontFamily = PoppinsFont,
-                        modifier = Modifier.padding(16.dp)
+                        color = Color(0xFF1A1A1A),
+                        modifier = Modifier.padding(bottom = 8.dp)
                     )
-                }
-                Spacer(modifier = Modifier.height(18.dp))
-                // Info Catering Owner
-                if (owner != null) {
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 12.dp, start = 18.dp, end = 18.dp)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(bottom = 20.dp)
+                    ) {
                         Image(
                             painter = rememberAsyncImagePainter(owner.photoUrl),
                             contentDescription = "Owner Photo",
-                            modifier = Modifier.size(40.dp).clip(CircleShape).background(Color.White, CircleShape),
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Column {
-                            Text(owner.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                            Text(owner.email, fontSize = 13.sp, color = Color.Gray)
+                            Text(
+                                text = owner.name,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 15.sp,
+                                fontFamily = PoppinsFont,
+                                color = Color(0xFF1A1A1A)
+                            )
+                            Text(
+                                text = owner.email,
+                                fontSize = 13.sp,
+                                color = Color(0xFF666666),
+                                fontFamily = PoppinsFont
+                            )
                         }
                     }
                 }
-                // Selector jumlah
+            }
+            
+            // Quantity and Add to Cart Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "Jumlah Pesanan",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = PoppinsFont,
+                    color = Color(0xFF1A1A1A),
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+                
+                // Quantity Selector
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(bottom = 18.dp, top = 8.dp)
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
-                    IconButton(onClick = { if (quantity.value > 1) quantity.value-- }) {
-                        Icon(Icons.Filled.Remove, contentDescription = "Kurangi")
+                    IconButton(
+                        onClick = { if (quantity.value > 1) quantity.value-- },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(
+                                if (quantity.value > 1) Color(0xFFFCB507) else Color(0xFFE0E0E0),
+                                CircleShape
+                            )
+                    ) {
+                        Icon(
+                            Icons.Filled.Remove,
+                            contentDescription = "Kurangi",
+                            tint = if (quantity.value > 1) Color.White else Color.Gray,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
+                    
                     Text(
                         text = quantity.value.toString(),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.width(36.dp),
-                        color = Color.Black
+                        fontFamily = PoppinsFont,
+                        modifier = Modifier.padding(horizontal = 24.dp),
+                        color = Color(0xFF1A1A1A)
                     )
-                    IconButton(onClick = { quantity.value++ }) {
-                        Icon(Icons.Filled.Add, contentDescription = "Tambah")
+                    
+                    IconButton(
+                        onClick = { quantity.value++ },
+                        modifier = Modifier
+                            .size(40.dp)
+                            .background(Color(0xFFFCB507), CircleShape)
+                    ) {
+                        Icon(
+                            Icons.Filled.Add,
+                            contentDescription = "Tambah",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
                     }
                 }
+                
+                // Add to Cart Button
                 Button(
                     onClick = {
                         if (userId != null) {
@@ -195,122 +313,275 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                         }
                         onAddToCart?.invoke(item)
                     },
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 18.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFFCB507)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
                 ) {
-                    Text(text = "Tambah ke Keranjang", fontSize = 19.sp, fontFamily = PoppinsFont, fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "Tambah ke Keranjang",
+                        fontSize = 16.sp,
+                        fontFamily = PoppinsFont,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
                 }
-                Spacer(modifier = Modifier.height(24.dp))
-                // Komentar & Rating
-                Text("Komentar & Rating", fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.padding(bottom = 10.dp, start = 18.dp))
-                // Form komentar
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Comments Section
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "Ulasan & Rating",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = PoppinsFont,
+                    color = Color(0xFF1A1A1A),
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                // Comment Form
                 if (isLoggedIn) {
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(2.dp),
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 4.dp)
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 20.dp)
                     ) {
-                        Column(Modifier.padding(14.dp)) {
-                            Text("Tulis Komentar Anda", fontWeight = FontWeight.Medium, fontFamily = PoppinsFont, fontSize = 15.sp)
-                            OutlinedTextField(
-                                value = commentText,
-                                onValueChange = { commentText = it },
-                                placeholder = { Text("Tulis komentar...", fontFamily = PoppinsFont) },
-                                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
-                                singleLine = false,
-                                shape = RoundedCornerShape(12.dp)
+                        OutlinedTextField(
+                            value = commentText,
+                            onValueChange = { commentText = it },
+                            placeholder = { 
+                                Text(
+                                    "Bagikan pengalaman Anda...",
+                                    fontFamily = PoppinsFont,
+                                    color = Color(0xFF999999)
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                            singleLine = false,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = androidx.compose.material.TextFieldDefaults.outlinedTextFieldColors(
+                                backgroundColor = Color.White,
+                                focusedBorderColor = Color(0xFFFCB507),
+                                unfocusedBorderColor = Color(0xFFE0E0E0)
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Rating:", fontFamily = PoppinsFont, fontSize = 14.sp)
-                                Spacer(Modifier.width(8.dp))
+                        )
+                        
+                        Spacer(modifier = Modifier.height(12.dp))
+                        
+                        // Rating and Send Button Row
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Rating:",
+                                fontFamily = PoppinsFont,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF1A1A1A),
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            
+                            // Stars Rating
+                            Row(
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 for (i in 1..5) {
-                                    IconButton(onClick = { commentRating = i }) {
-                                        Icon(
-                                            imageVector = if (i <= commentRating) Icons.Filled.Star else Icons.Filled.Star,
-                                            contentDescription = null,
-                                            tint = if (i <= commentRating) Color(0xFFFFA000) else Color(0xFFE0E0E0),
-                                            modifier = Modifier.size(22.dp)
+                                    Icon(
+                                        imageVector = Icons.Filled.Star,
+                                        contentDescription = null,
+                                        tint = if (i <= commentRating) Color(0xFFFFA000) else Color(0xFFE0E0E0),
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .clickable { commentRating = i }
+                                            .padding(end = 2.dp)
+                                    )
+                                }
+                            }
+                            
+                            // Send Button
+                            Button(
+                                onClick = {
+                                    if (commentText.isNotBlank()) {
+                                        val comment = Comment(
+                                            itemId = item.id,
+                                            userId = userId ?: "",
+                                            userName = userName,
+                                            userPhotoUrl = userPhotoUrl,
+                                            text = commentText,
+                                            rating = commentRating,
+                                            timestamp = Date().time
                                         )
-                                    }
-                                }
-                                Spacer(Modifier.weight(1f))
-                                Button(
-                                    onClick = {
-                                        if (commentText.isNotBlank()) {
-                                            val comment = Comment(
-                                                itemId = item.id,
-                                                userId = userId ?: "",
-                                                userName = userName,
-                                                userPhotoUrl = userPhotoUrl,
-                                                text = commentText,
-                                                rating = commentRating,
-                                                timestamp = Date().time
-                                            )
-                                            viewModel.addComment(comment)
-                                            commentText = ""
-                                            commentRating = 5
-                                            coroutineScope.launch {
-                                                snackbarHostState.showSnackbar("Komentar berhasil dikirim!")
-                                            }
+                                        viewModel.addComment(comment)
+                                        commentText = ""
+                                        commentRating = 5
+                                        coroutineScope.launch {
+                                            snackbarHostState.showSnackbar("Ulasan berhasil dikirim!")
                                         }
-                                    },
-                                    shape = RoundedCornerShape(10.dp),
-                                    enabled = commentText.isNotBlank()
-                                ) {
-                                    Text("Kirim", fontFamily = PoppinsFont)
-                                }
+                                    }
+                                },
+                                enabled = commentText.isNotBlank(),
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFFFCB507),
+                                    disabledContainerColor = Color(0xFFE0E0E0)
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                                    .height(36.dp)
+                                    .padding(start = 8.dp)
+                            ) {
+                                Text(
+                                    text = "Kirim",
+                                    fontFamily = PoppinsFont,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White
+                                )
                             }
                         }
                     }
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .background(Color(0xFFF8F9FA), RoundedCornerShape(12.dp))
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Silakan login untuk memberikan ulasan",
+                            fontFamily = PoppinsFont,
+                            fontSize = 14.sp,
+                            color = Color(0xFF666666),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
-                // Komentar quote style
-                Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp)) {
-                    if (comments.isEmpty()) {
-                        Text("Belum ada komentar.", color = Color.Gray, fontSize = 14.sp, modifier = Modifier.padding(top = 8.dp))
-                    } else {
+                
+                // Comments List
+                if (comments.isEmpty()) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Belum ada ulasan untuk item ini",
+                            color = Color(0xFF999999),
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsFont
+                        )
+                    }
+                } else {
+                    Column {
                         comments.sortedByDescending { it.timestamp }.forEach { comment ->
-                            Card(
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
-                                elevation = CardDefaults.cardElevation(0.dp),
-                                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.Top
                             ) {
-                                Row(Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(Icons.Filled.FormatQuote, contentDescription = null, tint = Color(0xFFFCB507), modifier = Modifier.size(22.dp))
-                                    Spacer(Modifier.width(8.dp))
-                                    Column(Modifier.weight(1f)) {
-                                        Text(comment.text, fontFamily = PoppinsFont, fontSize = 15.sp, color = Color(0xFF222222))
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                // User Avatar
+                                if (comment.userPhotoUrl.isNotBlank()) {
+                                    Image(
+                                        painter = rememberAsyncImagePainter(comment.userPhotoUrl),
+                                        contentDescription = "User Photo",
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                            .clip(CircleShape),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                }
+                                
+                                // Comment Content
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    // User name and rating
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = comment.userName,
+                                            fontFamily = PoppinsFont,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = Color(0xFF1A1A1A),
+                                            modifier = Modifier.padding(end = 8.dp)
+                                        )
+                                        
+                                        // Rating stars
+                                        Row {
                                             repeat(comment.rating) {
-                                                Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
+                                                Icon(
+                                                    Icons.Filled.Star,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFFFFA000),
+                                                    modifier = Modifier.size(12.dp)
+                                                )
                                             }
-                                            if (comment.rating < 5) {
-                                                repeat(5 - comment.rating) {
-                                                    Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(16.dp))
-                                                }
+                                            repeat(5 - comment.rating) {
+                                                Icon(
+                                                    Icons.Filled.Star,
+                                                    contentDescription = null,
+                                                    tint = Color(0xFFE0E0E0),
+                                                    modifier = Modifier.size(12.dp)
+                                                )
                                             }
-                                            Spacer(Modifier.width(8.dp))
-                                            Text("oleh ${comment.userName}", fontSize = 12.sp, color = Color.Gray)
                                         }
                                     }
-                                    if (comment.userPhotoUrl.isNotBlank()) {
-                                        Spacer(Modifier.width(8.dp))
-                                        Image(
-                                            painter = rememberAsyncImagePainter(comment.userPhotoUrl),
-                                            contentDescription = "User Photo",
-                                            modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White, CircleShape),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    }
+                                    
+                                    // Comment text
+                                    Text(
+                                        text = comment.text,
+                                        fontFamily = PoppinsFont,
+                                        fontSize = 14.sp,
+                                        color = Color(0xFF333333),
+                                        lineHeight = 18.sp
+                                    )
                                 }
+                            }
+                            
+                            // Divider
+                            if (comment != comments.sortedByDescending { it.timestamp }.last()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(1.dp)
+                                        .background(Color(0xFFE0E0E0))
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
                 }
             }
+                
+                Spacer(modifier = Modifier.height(24.dp))
+            }
         }
-        SnackbarHost(hostState = snackbarHostState, modifier = Modifier.align(Alignment.BottomCenter))
+        
+        // Snackbar host positioned at bottom
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 } 

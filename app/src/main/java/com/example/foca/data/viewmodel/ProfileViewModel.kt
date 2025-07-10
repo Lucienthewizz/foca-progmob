@@ -37,4 +37,20 @@ class ProfileViewModel : ViewModel() {
             _orders.value = result
         }
     }
-} 
+
+    fun updateProfile(uid: String, name: String, email: String, phone: String) {
+        viewModelScope.launch {
+            val profileUpdate = hashMapOf(
+                "name" to name,
+                "email" to email,
+                "phone" to phone
+            )
+            firestore.collection("profile").document(uid)
+                .update(profileUpdate as Map<String, Any>)
+                .addOnSuccessListener {
+                    // Refresh profile
+                    loadProfile(uid)
+                }
+        }
+    }
+}
