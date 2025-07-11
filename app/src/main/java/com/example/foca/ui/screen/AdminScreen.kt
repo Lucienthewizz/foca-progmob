@@ -176,7 +176,7 @@ fun AdminScreen(navController: NavController, userId: String? = null, onLogout: 
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Enhanced Tab Navigation with better spacings
+            // Enhanced Tab Navigation with better spacingss
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
