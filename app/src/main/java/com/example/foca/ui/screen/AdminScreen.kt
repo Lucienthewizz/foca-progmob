@@ -39,10 +39,11 @@ import com.example.foca.data.model.Order
 import com.example.foca.data.model.CateringItem
 import com.example.foca.data.viewmodel.AdminViewModel
 import com.example.foca.ui.theme.PoppinsFont
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.example.foca.utils.formatRupiah
 
 @Composable
 fun AdminScreen(navController: NavController, userId: String? = null, onLogout: (() -> Unit)? = null) {
@@ -65,6 +66,11 @@ fun AdminScreen(navController: NavController, userId: String? = null, onLogout: 
     val orders = ordersState.value
     val menuItems = menuItemsState.value
     
+    // Calculate stats
+    val totalOrders = orders.size
+    val totalMenuItems = menuItems.size
+    val totalRevenue = orders.filter { it.status == "success" }.sumOf { it.total ?: 0.0 }
+    
     // Monitor data loading state - improved logic
     LaunchedEffect(orders, menuItems) {
         // Set data as loaded once we have any data or after a reasonable delay
@@ -77,15 +83,19 @@ fun AdminScreen(navController: NavController, userId: String? = null, onLogout: 
         isDataLoaded = true
     }
 
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(
+                brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFFAF8F0),
-                        Color(0xFFF8F9FA)
-                    )
+                        Color(0xFFFCB507), // Gold/Yellow
+                        Color(0xFFFDE68A), // Soft yellow
+                        Color(0xFFF8F9FA)  // Light background
+                    ),
+                    startY = 0f,
+                    endY = 1200f
                 )
             )
     ) {
@@ -96,101 +106,74 @@ fun AdminScreen(navController: NavController, userId: String? = null, onLogout: 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFFFCB507).copy(alpha = 0.1f),
-                                Color(0xFFFFD54F).copy(alpha = 0.05f),
-                                Color.White
-                            )
-                        )
-                    )
+                    .padding(top = 70.dp, start = 24.dp, end = 24.dp, bottom = 16.dp)
             ) {
-                
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 60.dp, start = 24.dp, end = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Column {
+                    Text(
+                        text = "Dashboard Admin",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = PoppinsFont,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Selamat datang kembali!",
+                        fontSize = 16.sp,
+                        fontFamily = PoppinsFont,
+                        color = Color.White.copy(alpha = 0.8f)
+                    )
+                }
+                IconButton(
+                    onClick = { showLogoutDialog = true },
+                    modifier = Modifier.align(Alignment.TopEnd)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = "Admin Dashboard",
-                                fontFamily = PoppinsFont,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 28.sp,
-                                color = Color(0xFF1A1A1A)
-                            )
-                            Text(
-                                text = "Kelola pesanan dan menu catering",
-                                fontFamily = PoppinsFont,
-                                fontSize = 14.sp,
-                                color = Color(0xFF1A1A1A).copy(alpha = 0.7f)
-                            )
-                        }
-                        
-                        Card(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .shadow(2.dp, RoundedCornerShape(12.dp)),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCB507))
-                        ) {
-                            IconButton(
-                                onClick = { showLogoutDialog = true },
-                                modifier = Modifier.fillMaxSize()
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.ExitToApp,
-                                    contentDescription = "Logout",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Enhanced Admin Stats
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        EnhancedAdminStatCard(
-                            title = "Total\nPesanan",
-                            count = if (isDataLoaded) orders.size.toString() else "0",
-                            icon = Icons.Default.Receipt,
-                            color = Color(0xFFFCB507),
-                            bgColor = Color(0xFFFCB507).copy(alpha = 0.1f),
-                            isLoading = !isDataLoaded
-                        )
-                        EnhancedAdminStatCard(
-                            title = "Menu\nTersedia",
-                            count = if (isDataLoaded) menuItems.size.toString() else "0",
-                            icon = Icons.Default.Restaurant,
-                            color = Color(0xFFFCB507),
-                            bgColor = Color(0xFFFCB507).copy(alpha = 0.1f),
-                            isLoading = !isDataLoaded
-                        )
-                        EnhancedAdminStatCard(
-                            title = "Menunggu\nKonfirmasi",
-                            count = if (isDataLoaded) orders.count { it.status == "pending" }.toString() else "0",
-                            icon = Icons.Default.Schedule,
-                            color = Color(0xFFFCB507),
-                            bgColor = Color(0xFFFCB507).copy(alpha = 0.1f),
-                            isLoading = !isDataLoaded
-                        )
-                    }
+                    Icon(
+                        imageVector = Icons.Filled.Logout,
+                        contentDescription = "Logout",
+                        tint = Color.White
+                    )
                 }
             }
 
+            // Stats Cards - Enhanced with dynamic data
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    EnhancedAdminStatCard(
+                        title = "Total Pesanan",
+                        count = totalOrders.toString(),
+                        icon = Icons.Filled.ShoppingCart,
+                        color = Color(0xFFFFA726),
+                        bgColor = Color(0xFFFFF3E0),
+                        isLoading = !isDataLoaded
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    EnhancedAdminStatCard(
+                        title = "Total Menu",
+                        count = totalMenuItems.toString(),
+                        icon = Icons.Filled.MenuBook,
+                        color = Color(0xFF66BB6A),
+                        bgColor = Color(0xFFE8F5E9),
+                        isLoading = !isDataLoaded
+                    )
+                }
+                Box(modifier = Modifier.weight(1f)) {
+                    EnhancedAdminStatCard(
+                        title = "Total Pendapatan",
+                        count = formatRupiah(totalRevenue),
+                        icon = Icons.Filled.AttachMoney,
+                        color = Color(0xFF42A5F5),
+                        bgColor = Color(0xFFE3F2FD),
+                        isLoading = !isDataLoaded
+                    )
+                }
+            }
+            
             Spacer(modifier = Modifier.height(24.dp))
             
             // Enhanced Tab Navigation with better spacing
@@ -1777,4 +1760,9 @@ fun EnhancedTextField(
             maxLines = maxLines
         )
     }
+}
+
+fun formatRupiah(amount: Double): String {
+    val formatter = java.text.NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    return formatter.format(amount)
 }

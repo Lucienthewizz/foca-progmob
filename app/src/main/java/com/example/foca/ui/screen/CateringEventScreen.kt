@@ -32,6 +32,8 @@ import com.example.foca.ui.components.FoodCard
 import com.example.foca.ui.components.SearchFilterComponent
 import com.example.foca.ui.theme.PoppinsFont
 import com.google.gson.Gson
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -123,7 +125,9 @@ fun CateringEventScreen(navController: NavController) {
                             .fillMaxWidth()
                             .padding(vertical = 8.dp),
                         onClick = {
-                            navController.navigate("detail/${item.id}")
+                            val itemJson = Gson().toJson(item)
+                            val encodedItemJson = URLEncoder.encode(itemJson, StandardCharsets.UTF_8.toString())
+                            navController.navigate("detail/$encodedItemJson")
                         }
                     )
                 }

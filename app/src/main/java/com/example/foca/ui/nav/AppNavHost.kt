@@ -34,6 +34,9 @@ import com.example.foca.data.viewmodel.CateringViewModel
 import com.example.foca.ui.screen.AdminScreen
 import com.example.foca.ui.screen.AdminChatScreen
 import android.util.Log
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 
 object Routes {
@@ -98,7 +101,7 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
     }
     
     // Always start with loading screen
-    val startDestination = Routes.LOADING
+    val startDestination = if (userId.isNullOrEmpty()) Routes.LOADING else Routes.HOME
     
     NavHost(navController, startDestination = startDestination) {
         composable(Routes.LOADING) { LoadingScreen(navController) }
@@ -111,60 +114,67 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
         composable(BottomNavItem.Home.route) { HomeScreen(navController, userName, userPhotoUrl) }
         composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
         composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
-        composable(BottomNavItem.Cart.route) { CartScreen(navController) }
-        composable(BottomNavItem.Chat.route) {
+
+        // New composable route for DetailScreen with smooth animation
+        composable(
+            "detail/{itemJson}",
+            arguments = listOf(navArgument("itemJson") { type = NavType.StringType }),
+            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) },
+            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) },
+            popEnterTransition = { slideInHorizontally(initialOffsetX = { -1000 }) },
+            popExitTransition = { slideOutHorizontally(targetOffsetX = { 1000 }) }
+        ) { backStackEntry ->
+            val itemJson = backStackEntry.arguments?.getString("itemJson")
+            if (itemJson.isNullOrEmpty()) {
+                // Jika data tidak valid, kembali ke layar sebelumnya
+                navController.popBackStack()
+                return@composable
+            }
+            val item = try {
+                val decodedItemJson = URLDecoder.decode(itemJson, StandardCharsets.UTF_8.toString())
+                Gson().fromJson(decodedItemJson, CateringItem::class.java)
+            } catch (e: Exception) {
+                // Jika parsing gagal, kembali ke layar sebelumnya
+                Log.e("AppNavHost", "Error parsing itemJson: $itemJson", e)
+                navController.popBackStack()
+                return@composable
+            }
+            val ownerProfileState = profileViewModel.userProfile.collectAsState()
+            LaunchedEffect(item.userId) {
+                if (!item.userId.isNullOrEmpty()) {
+                    profileViewModel.loadUserProfile(item.userId)
+                }
+            }
+            DetailScreen(navController = navController, item = item, owner = if (!item.userId.isNullOrEmpty()) ownerProfileState.value else null)
+        }
+        composable(
+            Routes.CART,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            val cateringViewModel: CateringViewModel = viewModel()
+            CartScreen(navController = navController, cateringViewModel = cateringViewModel)
+        }
+        composable(
+            Routes.CHAT,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
             if (userId != null) {
                 ChatScreen(navController, userId = userId)
             }
         }
-        composable(BottomNavItem.Profile.route) { ProfileScreen(navController, userId, onLogout) }
-
-        // New composable route for DetailScreen with smooth animation
         composable(
-            route = "detail/{itemId}",
-            arguments = listOf(navArgument("itemId") { type = NavType.StringType }),
-            enterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            },
-            exitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> -fullWidth },
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
-            },
-            popEnterTransition = {
-                slideInHorizontally(
-                    initialOffsetX = { fullWidth -> -fullWidth },
-                    animationSpec = tween(300)
-                ) + fadeIn(animationSpec = tween(300))
-            },
-            popExitTransition = {
-                slideOutHorizontally(
-                    targetOffsetX = { fullWidth -> fullWidth },
-                    animationSpec = tween(300)
-                ) + fadeOut(animationSpec = tween(300))
-            }
-        ) { backStackEntry ->
-            val itemId = backStackEntry.arguments?.getString("itemId") ?: ""
-            val cateringViewModel: CateringViewModel = viewModel()
-            val allItems = cateringViewModel.allItems.collectAsState().value
-            androidx.compose.runtime.LaunchedEffect(itemId) {
-                if (allItems.isEmpty()) cateringViewModel.loadAllCateringItems()
-            }
-            val item = allItems.find { it.id == itemId }
-            if (item != null) {
-                DetailScreen(item = item)
-            } else {
-                // Optional: tampilkan loading atau pesan data tidak ditemukan
-                androidx.compose.material3.Text("Loading menu detail...")
+            Routes.PROFILE,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) }
+        ) {
+            if (userId != null) {
+                ProfileScreen(navController, userId, onLogout)
             }
         }
-
-        // New composable route for PaymentScreen
-        composable("payment/{total}",
+        composable(
+            route = "payment/{total}",
             arguments = listOf(
                 navArgument("total") { type = NavType.StringType }
             )

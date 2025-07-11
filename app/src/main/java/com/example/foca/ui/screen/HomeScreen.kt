@@ -49,6 +49,8 @@ import com.example.foca.ui.theme.PoppinsFont
 import com.google.firebase.auth.FirebaseAuth
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.shape.CircleShape
@@ -217,7 +219,9 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                                 item = item,
                                 modifier = Modifier.padding(end = 14.dp),
                                 onClick = {
-                                    navController.navigate("detail/${item.id}")
+                                    val itemJson = Gson().toJson(item)
+                                    val encodedItemJson = URLEncoder.encode(itemJson, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("detail/$encodedItemJson")
                                 },
                                 onAddToCart = {
                                     if (userId != null) {
@@ -282,7 +286,9 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                                 item = item,
                                 modifier = Modifier.padding(end = 14.dp),
                                 onClick = {
-                                    navController.navigate("detail/${item.id}")
+                                    val itemJson = Gson().toJson(item)
+                                    val encodedItemJson = URLEncoder.encode(itemJson, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("detail/$encodedItemJson")
                                 },
                                 onAddToCart = {
                                     if (userId != null) {
@@ -357,7 +363,9 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                                 item = item,
                                 modifier = Modifier.padding(end = 14.dp),
                                 onClick = {
-                                    navController.navigate("detail/${item.id}")
+                                    val itemJson = Gson().toJson(item)
+                                    val encodedItemJson = URLEncoder.encode(itemJson, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("detail/$encodedItemJson")
                                 },
                                 onAddToCart = {
                                     if (userId != null) {
@@ -401,7 +409,9 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                                 item = item,
                                 modifier = Modifier.padding(end = 14.dp),
                                 onClick = {
-                                    navController.navigate("detail/${item.id}")
+                                    val itemJson = Gson().toJson(item)
+                                    val encodedItemJson = URLEncoder.encode(itemJson, StandardCharsets.UTF_8.toString())
+                                    navController.navigate("detail/$encodedItemJson")
                                 },
                                 onAddToCart = {
                                     if (userId != null) {

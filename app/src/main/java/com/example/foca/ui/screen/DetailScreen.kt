@@ -50,12 +50,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
-
+import androidx.navigation.NavController
+import com.example.foca.utils.formatRupiah
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 
 
 @Composable
-fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = null, owner: UserProfile? = null) {
-    val viewModel: CateringViewModel = viewModel()
+fun DetailScreen(
+    navController: NavController,
+    item: CateringItem,
+    onAddToCart: ((CateringItem) -> Unit)? = null,
+    owner: UserProfile? = null,
+    viewModel: CateringViewModel = viewModel()
+) {
+    // Fallback UI jika data kosong
+    if (item.title.isNullOrEmpty() && item.imageUrl.isNullOrEmpty() && item.description.isNullOrEmpty()) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Data menu tidak ditemukan.",
+                color = Color.Red,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        return
+    }
+    
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
     val userId = FirebaseAuth.getInstance().currentUser?.uid
@@ -87,14 +110,13 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp)
+                        .height(320.dp) // Increased height for better visual
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(item.imageUrl),
                         contentDescription = item.title,
                         modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)),
+                            .fillMaxSize(), // Fill the box
                         contentScale = ContentScale.Crop
                     )
                 }
@@ -595,10 +617,25 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
             }
         }
         
+        // Back Button with background
+        IconButton(
+            onClick = { navController.navigateUp() },
+            modifier = Modifier
+                .padding(start = 16.dp, top = 48.dp) // Position from top-left, with more top padding
+                .background(Color.Black.copy(alpha = 0.5f), CircleShape)
+                .align(Alignment.TopStart)
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White
+            )
+        }
+
         // Snackbar host positioned at bottom
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter)
         )
     }
-} 
+}

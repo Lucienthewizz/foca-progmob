@@ -2,6 +2,7 @@ package com.example.foca.ui.screen
 
 // Import Statements
 import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -27,14 +28,8 @@ import com.example.foca.data.model.CateringItem
 import com.example.foca.data.viewmodel.CartViewModel
 import com.example.foca.data.viewmodel.CateringViewModel
 import com.example.foca.ui.theme.PoppinsFont
+import com.example.foca.utils.formatRupiah
 import com.google.firebase.auth.FirebaseAuth
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import java.net.URLEncoder
-import kotlinx.coroutines.launch
-import java.text.NumberFormat
 
 // === CartItemCard ===
 @Composable
@@ -351,9 +346,8 @@ fun ClearCartDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
 // === CartScreen ===
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CartScreen(navController: NavController) {
+fun CartScreen(navController: NavController, cateringViewModel: CateringViewModel = viewModel()) {
     val viewModel: CartViewModel = viewModel()
-    val cateringViewModel: CateringViewModel = viewModel()
     val cartItems by viewModel.cartItems.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val operationStatus by viewModel.operationStatus.collectAsState()
@@ -363,11 +357,11 @@ fun CartScreen(navController: NavController) {
     val userId = FirebaseAuth.getInstance().currentUser?.uid
 
     var total = 0.0
-    val cartDetails = cartItems.mapNotNull {
-        val menu = allMenus.find { menu -> menu.id == it.cateringId }
+    val cartDetails = cartItems.mapNotNull { cartItem ->
+        val menu = allMenus.find { menu -> menu.id == cartItem.cateringId }
         if (menu != null) {
-            total += menu.price * it.quantity
-            Triple(menu, it.quantity, menu.price * it.quantity)
+            total += menu.price * cartItem.quantity
+            Triple(menu, cartItem.quantity, menu.price * cartItem.quantity)
         } else null
     }
 
@@ -458,15 +452,15 @@ fun CartScreen(navController: NavController) {
                                     quantity = quantity,
                                     subtotal = subtotal,
                                     onIncreaseQuantity = {
-                                        userId?.let { viewModel.updateCartItemQuantity(it, menu.id, quantity + 1) }
+                                        userId?.let { viewModel.updateCartItemQuantity(it, menu.id ?: "", quantity + 1) }
                                     },
                                     onDecreaseQuantity = {
                                         if (quantity > 1) {
-                                            userId?.let { viewModel.updateCartItemQuantity(it, menu.id, quantity - 1) }
+                                            userId?.let { viewModel.updateCartItemQuantity(it, menu.id ?: "", quantity - 1) }
                                         }
                                     },
                                     onRemove = {
-                                        userId?.let { viewModel.removeCartItem(it, menu.id) }
+                                        userId?.let { viewModel.removeCartItem(it, menu.id ?: "") }
                                     }
                                 )
                             }
@@ -577,9 +571,4 @@ fun EmptyCartState() {
             )
         }
     }
-}
-
-fun formatRupiah(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance(Locale("in", "ID"))
-    return format.format(amount).replace(",00", "").replace("Rp", "Rp ")
 }

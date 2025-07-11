@@ -9,5 +9,6 @@ data class CateringItem(
     val price: Double = 0.0,
     val isRecommended: Boolean = false,
     val isFavorite: Boolean = false,
-    val rating: Double? = 0.0
+    val rating: Double? = 0.0,
+    val userId: String = "" // Added userId property
 )
