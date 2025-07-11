@@ -85,6 +85,9 @@ dependencies {
 
     // Firebase Auth for Google Sign-In
     implementation("com.google.firebase:firebase-auth")
+    
+    // Firebase Storage for file uploads
+    implementation("com.google.firebase:firebase-storage")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

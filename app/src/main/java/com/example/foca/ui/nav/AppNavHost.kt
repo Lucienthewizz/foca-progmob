@@ -31,6 +31,9 @@ import androidx.compose.runtime.LaunchedEffect
 import com.example.foca.ui.screen.PaymentScreen
 import com.example.foca.ui.screen.OrderHistoryScreen
 import com.example.foca.data.viewmodel.CateringViewModel
+import com.example.foca.ui.screen.AdminScreen
+import com.example.foca.ui.screen.AdminChatScreen
+import android.util.Log
 
 
 object Routes {
@@ -38,11 +41,13 @@ object Routes {
     const val LOGIN = "login"
     const val LOADING = "loading"
     const val HOME = "home"
+    const val ADMIN = "admin"
     const val CATERING_DAILY = "catering_daily"
     const val CATERING_EVENT = "catering_event"
     const val CART = "cart"
     const val CHAT = "chat"
     const val PROFILE = "profile"
+    const val ADMIN_CHAT = "admin_chat/{userId}"
 }
 
 @Composable
@@ -52,12 +57,54 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
     if (!userId.isNullOrEmpty()) {
         LaunchedEffect(userId) { profileViewModel.loadProfile(userId) }
     }
-    val userName = profileState.value?.name
+    val userName = profileState.value?.firstName?.ifEmpty { 
+        profileState.value?.name?.split(" ")?.firstOrNull() 
+    } ?: "User"
     val userPhotoUrl = profileState.value?.photoUrl
-    NavHost(navController, startDestination = Routes.LOADING) {
+    
+    // Check if user is admin
+    val isAdmin = profileState.value?.role == "admin"
+    val currentProfile = profileState.value
+    
+    // Handle navigation based on user role and authentication
+    LaunchedEffect(userId, currentProfile) {
+        val currentRoute = navController.currentDestination?.route
+        Log.d("AppNavHost", "Navigation check - userId: $userId, profile: ${currentProfile?.email}, role: ${currentProfile?.role}, currentRoute: $currentRoute")
+        
+        if (userId.isNullOrEmpty()) {
+            // User logged out, go to login
+            Log.d("AppNavHost", "User logged out, navigating to login")
+            if (currentRoute != Routes.LOGIN && currentRoute != Routes.LOADING && currentRoute != Routes.SIGNUP) {
+                navController.navigate(Routes.LOGIN) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        } else if (currentProfile != null) {
+            // User logged in and profile loaded, check role
+            val userRole = currentProfile.role ?: "user"
+            Log.d("AppNavHost", "User logged in with role: $userRole")
+            if (userRole == "admin" && currentRoute != Routes.ADMIN) {
+                Log.d("AppNavHost", "Navigating admin to AdminScreen")
+                navController.navigate(Routes.ADMIN) {
+                    popUpTo(0) { inclusive = true }
+                }
+            } else if (userRole == "user" && (currentRoute == Routes.ADMIN || currentRoute == Routes.LOGIN || currentRoute == Routes.SIGNUP || currentRoute == Routes.LOADING)) {
+                Log.d("AppNavHost", "Navigating user to HomeScreen")
+                navController.navigate(BottomNavItem.Home.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
+    
+    // Always start with loading screen
+    val startDestination = Routes.LOADING
+    
+    NavHost(navController, startDestination = startDestination) {
         composable(Routes.LOADING) { LoadingScreen(navController) }
         composable(Routes.LOGIN) { LoginScreen(navController, onGoogleSignIn, userId) }
         composable(Routes.SIGNUP) { SignUpScreen(navController) }
+        composable(Routes.ADMIN) { AdminScreen(navController, userId, onLogout) }
 
         // -------- Main Routes ---------
         // Menggunakan BottomNavItem.Home.route untuk menghindari duplikasi
@@ -65,7 +112,11 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
         composable(Routes.CATERING_DAILY) { CateringDailyScreen(navController) }
         composable(Routes.CATERING_EVENT) { CateringEventScreen(navController) }
         composable(BottomNavItem.Cart.route) { CartScreen(navController) }
-        composable(BottomNavItem.Chat.route) { ChatScreen(navController) }
+        composable(BottomNavItem.Chat.route) {
+            if (userId != null) {
+                ChatScreen(navController, userId = userId)
+            }
+        }
         composable(BottomNavItem.Profile.route) { ProfileScreen(navController, userId, onLogout) }
 
         // New composable route for DetailScreen with smooth animation
@@ -129,6 +180,17 @@ fun AppNavHost(navController: NavHostController, onGoogleSignIn: (() -> Unit)? =
         }
         composable("order_history") {
             OrderHistoryScreen(navController, userId)
+        }
+        composable(
+            route = Routes.ADMIN_CHAT,
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val chatUserId = backStackEntry.arguments?.getString("userId")
+            if (chatUserId != null) {
+                AdminChatScreen(navController = navController, userId = chatUserId)
+            } else {
+                // Handle error, e.g., navigate back or show an error message
+            }
         }
     }
 }

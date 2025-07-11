@@ -495,18 +495,35 @@ fun DetailScreen(item: CateringItem, onAddToCart: ((CateringItem) -> Unit)? = nu
                                     .padding(vertical = 8.dp),
                                 verticalAlignment = Alignment.Top
                             ) {
-                                // User Avatar
-                                if (comment.userPhotoUrl.isNotBlank()) {
-                                    Image(
-                                        painter = rememberAsyncImagePainter(comment.userPhotoUrl),
-                                        contentDescription = "User Photo",
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                // User Avatar with placeholder
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .clip(CircleShape)
+                                        .background(Color(0xFFF0F0F0)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (comment.userPhotoUrl.isNotBlank()) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(comment.userPhotoUrl),
+                                            contentDescription = "User Photo",
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        // Placeholder with user initial or default icon
+                                        Text(
+                                            text = comment.userName.firstOrNull()?.uppercase() ?: "U",
+                                            fontFamily = PoppinsFont,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Color(0xFF666666)
+                                        )
+                                    }
                                 }
+                                Spacer(modifier = Modifier.width(12.dp))
                                 
                                 // Comment Content
                                 Column(

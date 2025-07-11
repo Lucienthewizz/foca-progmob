@@ -175,19 +175,19 @@ class FirebaseRepository {
         cartRef.set(mapOf("userId" to userId, "items" to emptyList<Map<String, Any>>())).await()
     }
 
-    suspend fun saveOrder(order: Order) {
-        val ordersRef = firestore.collection("orders")
-        val docRef = ordersRef.document()
-        val orderWithId = order.copy(orderId = docRef.id)
-        docRef.set(orderWithId).await()
+    suspend fun saveOrder(order: Order): String? {
+        return try {
+            val orderWithPendingStatus = order.copy(
+                status = "pending",
+                createdAt = com.google.firebase.Timestamp.now()
+            )
+            val docRef = firestore.collection("orders").add(orderWithPendingStatus).await()
+            docRef.id
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    suspend fun getOrdersByUserId(userId: String): List<Order> {
-        val snapshot = firestore.collection("orders")
-            .whereEqualTo("userId", userId)
-            .get().await()
-        return snapshot.documents.mapNotNull { it.toObject(Order::class.java) }
-    }
 
     fun getCommentsByItemId(itemId: String): Flow<List<Comment>> = callbackFlow {
         val listener = commentsCollection
@@ -256,5 +256,33 @@ class FirebaseRepository {
     suspend fun sendChatMessage(userId: String, message: ChatMessage) {
         val messagesCollection = firestore.collection("chat").document(userId).collection("messages")
         messagesCollection.add(message).await()
+    }
+
+    // --- ORDERS ---
+    suspend fun getOrdersByUserId(userId: String): List<Order> {
+        return try {
+            val snapshot = firestore.collection("orders")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            snapshot.documents.mapNotNull { document ->
+                document.toObject(Order::class.java)?.copy(orderId = document.id)
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun createOrder(order: Order): String? {
+        return try {
+            val orderWithPendingStatus = order.copy(
+                status = "pending",
+                createdAt = com.google.firebase.Timestamp.now()
+            )
+            val docRef = firestore.collection("orders").add(orderWithPendingStatus).await()
+            docRef.id
+        } catch (e: Exception) {
+            null
+        }
     }
 }

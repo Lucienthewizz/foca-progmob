@@ -37,6 +37,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.example.foca.R
 import com.example.foca.data.viewmodel.CateringViewModel
+import com.example.foca.data.viewmodel.ProfileViewModel
 import com.example.foca.ui.components.CategoryCard
 import com.example.foca.ui.components.FoodCard
 import com.example.foca.ui.components.PromotionData
@@ -66,6 +67,8 @@ import com.example.foca.data.model.Comment
 @Composable
 fun HomeScreen(navController: NavController, userName: String? = null, userPhotoUrl: String? = null, paymentSuccess: Boolean = false) {
     val viewModel: CateringViewModel = viewModel()
+    val profileViewModel: ProfileViewModel = viewModel()
+    val profileState = profileViewModel.profile.collectAsState()
     val recommendedMenus = viewModel.recommendedMenus.collectAsState(initial = emptyList()).value
     val favoriteMenus = viewModel.favoriteMenus.collectAsState(initial = emptyList()).value
     val isLoading = viewModel.isLoading.collectAsState().value
@@ -82,6 +85,20 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
     val ratingOptions = listOf(0.0, 3.0, 4.0, 4.5, 5.0)
     var showSuccessDialog by remember { mutableStateOf(paymentSuccess) }
     val latestComments by viewModel.latestComments.collectAsState()
+    
+    // Load profile if userId available
+    LaunchedEffect(userId) {
+        if (!userId.isNullOrEmpty()) {
+            profileViewModel.loadProfile(userId)
+        }
+    }
+    
+    // Get actual user name from profile
+    val actualUserName = profileState.value?.firstName?.ifEmpty { 
+        profileState.value?.name?.split(" ")?.firstOrNull() 
+    } ?: userName ?: "User"
+    
+    val actualUserPhotoUrl = profileState.value?.photoUrl?.ifEmpty { null } ?: userPhotoUrl
     LaunchedEffect(Unit) {
         viewModel.loadAllCateringItems()
         viewModel.loadRecommendedMenus()
@@ -106,9 +123,9 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 12.dp)
             ) {
-                if (!userPhotoUrl.isNullOrEmpty()) {
+                if (!actualUserPhotoUrl.isNullOrEmpty()) {
                     Image(
-                        painter = rememberAsyncImagePainter(userPhotoUrl),
+                        painter = rememberAsyncImagePainter(actualUserPhotoUrl),
                         contentDescription = "Profile Image",
                         modifier = Modifier
                             .size(55.dp)
@@ -127,7 +144,7 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = "Hello, ${userName ?: "User"}!",
+                        text = "Hello, $actualUserName!",
                         fontFamily = PoppinsFont,
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
@@ -406,54 +423,168 @@ fun HomeScreen(navController: NavController, userName: String? = null, userPhoto
             }
             // Section Testimoni
             Spacer(modifier = Modifier.height(32.dp))
-            Text(
-                text = "Testimoni Pelanggan",
-                fontFamily = PoppinsFont,
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp,
-                color = Color(0xFF222222)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Testimoni Pelanggan",
+                    fontFamily = PoppinsFont,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF222222)
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector = Icons.Default.FormatQuote,
+                    contentDescription = null,
+                    tint = Color(0xFFFCB507),
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
             if (latestComments.isEmpty()) {
-                Text("Belum ada testimoni.", color = Color.Gray, fontSize = 14.sp)
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FA)),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.FormatQuote,
+                            contentDescription = null,
+                            tint = Color(0xFFE0E0E0),
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            "Belum ada testimoni pelanggan",
+                            color = Color(0xFF999999),
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsFont
+                        )
+                    }
+                }
             } else {
-                // Auto-slide carousel (jika tidak bisa, pakai LazyRow biasa)
                 LazyRow(modifier = Modifier.fillMaxWidth()) {
                     items(latestComments) { comment ->
                         Card(
-                            shape = RoundedCornerShape(18.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F8F8)),
-                            elevation = CardDefaults.cardElevation(0.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             modifier = Modifier
-                                .width(320.dp)
-                                .padding(end = 14.dp)
+                                .width(300.dp)
+                                .padding(end = 16.dp)
                         ) {
-                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Filled.FormatQuote, contentDescription = null, tint = Color(0xFFFCB507), modifier = Modifier.size(22.dp))
-                                Spacer(Modifier.width(8.dp))
-                                Column(Modifier.weight(1f)) {
-                                    Text(comment.text, fontFamily = PoppinsFont, fontSize = 15.sp, color = Color(0xFF222222))
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        repeat(comment.rating) {
-                                            Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFFFA000), modifier = Modifier.size(16.dp))
-                                        }
-                                        if (comment.rating < 5) {
-                                            repeat(5 - comment.rating) {
-                                                Icon(Icons.Filled.Star, contentDescription = null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(16.dp))
+                            Column(
+                                modifier = Modifier.padding(20.dp)
+                            ) {
+                                // Quote icon
+                                Icon(
+                                    Icons.Filled.FormatQuote,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFCB507),
+                                    modifier = Modifier.size(28.dp)
+                                )
+                                
+                                Spacer(modifier = Modifier.height(12.dp))
+                                
+                                // Comment text
+                                Text(
+                                    text = comment.text,
+                                    fontFamily = PoppinsFont,
+                                    fontSize = 15.sp,
+                                    color = Color(0xFF1A1A1A),
+                                    lineHeight = 22.sp
+                                )
+                                
+                                Spacer(modifier = Modifier.height(16.dp))
+                                
+                                // Rating stars - aligned properly
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    repeat(5) { index ->
+                                        Icon(
+                                            Icons.Filled.Star,
+                                            contentDescription = null,
+                                            tint = if (index < comment.rating) Color(0xFFFFC107) else Color(0xFFE0E0E0),
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                    
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    
+                                    Text(
+                                        text = "${comment.rating}/5",
+                                        fontSize = 12.sp,
+                                        color = Color(0xFF666666),
+                                        fontFamily = PoppinsFont,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.height(16.dp))
+                                
+                                // User info
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    if (comment.userPhotoUrl.isNotBlank()) {
+                                        Image(
+                                            painter = rememberAsyncImagePainter(comment.userPhotoUrl),
+                                            contentDescription = "User Photo",
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        Card(
+                                            modifier = Modifier.size(36.dp),
+                                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCB507).copy(alpha = 0.1f)),
+                                            shape = CircleShape
+                                        ) {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = comment.userName.firstOrNull()?.toString()?.uppercase() ?: "?",
+                                                    fontFamily = PoppinsFont,
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 14.sp,
+                                                    color = Color(0xFFFCB507)
+                                                )
                                             }
                                         }
-                                        Spacer(Modifier.width(8.dp))
-                                        Text("oleh ${comment.userName}", fontSize = 12.sp, color = Color.Gray)
                                     }
-                                }
-                                if (comment.userPhotoUrl.isNotBlank()) {
-                                    Spacer(Modifier.width(8.dp))
-                                    Image(
-                                        painter = rememberAsyncImagePainter(comment.userPhotoUrl),
-                                        contentDescription = "User Photo",
-                                        modifier = Modifier.size(32.dp).clip(CircleShape).background(Color.White, CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                    
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    
+                                    Column {
+                                        Text(
+                                            text = comment.userName,
+                                            fontSize = 14.sp,
+                                            color = Color(0xFF1A1A1A),
+                                            fontFamily = PoppinsFont,
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                        Text(
+                                            text = "Pelanggan Setia",
+                                            fontSize = 12.sp,
+                                            color = Color(0xFF999999),
+                                            fontFamily = PoppinsFont
+                                        )
+                                    }
                                 }
                             }
                         }

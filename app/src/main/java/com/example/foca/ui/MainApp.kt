@@ -17,17 +17,12 @@ fun MainApp(onGoogleSignIn: (() -> Unit)? = null, userId: String? = null, onLogo
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Jika userId null, langsung ke LoginScreen dan clear stack
-    if (userId.isNullOrEmpty() && currentRoute != Routes.LOGIN) {
-        LaunchedEffect(Unit) {
-            navController.navigate(Routes.LOGIN) {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
-
-    // Tampilkan BottomBar hanya jika bukan di Loading atau Login
-    val showBottomBar = currentRoute != Routes.LOADING && currentRoute != Routes.LOGIN
+    // Tampilkan BottomBar hanya jika bukan di Loading, Login, SignUp, Admin, atau AdminChat
+    val showBottomBar = currentRoute != Routes.LOADING &&
+                        currentRoute != Routes.LOGIN &&
+                        currentRoute != Routes.SIGNUP &&
+                        currentRoute != Routes.ADMIN &&
+                        currentRoute?.startsWith("admin_chat") != true
 
     Column(modifier = Modifier.fillMaxSize()) {
         // Isi utama

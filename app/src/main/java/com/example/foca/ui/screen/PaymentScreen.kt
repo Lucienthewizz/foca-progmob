@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -56,9 +59,13 @@ import androidx.navigation.NavController
 import com.example.foca.R
 import com.example.foca.data.model.Order
 import com.example.foca.data.repository.FirebaseRepository
+import com.example.foca.data.viewmodel.ProfileViewModel
 import com.example.foca.ui.theme.PoppinsFont
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun PaymentScreen(
@@ -72,6 +79,19 @@ fun PaymentScreen(
     var isLoading by remember { mutableStateOf(false) }
     val repository = remember { FirebaseRepository() }
     val userId = FirebaseAuth.getInstance().currentUser?.uid ?: ""
+    
+    // Get user profile
+    val profileViewModel: ProfileViewModel = viewModel()
+    val userProfile by profileViewModel.profile.collectAsState()
+    val senderName = userProfile?.firstName ?: "User"
+    
+    // Load profile if user is logged in
+    LaunchedEffect(userId) {
+        if (userId.isNotBlank()) {
+            profileViewModel.loadProfile(userId)
+        }
+    }
+    
     var address by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
@@ -529,12 +549,13 @@ fun PaymentScreen(
                                 try {
                                     val order = Order(
                                         userId = userId,
+                                        senderName = senderName,
                                         address = address,
                                         note = note,
                                         date = date,
                                         total = total,
                                         paymentMethod = paymentMethod,
-                                        status = "Sukses"
+                                        status = "pending"
                                     )
                                     repository.saveOrder(order)
                                     isLoading = false
@@ -604,65 +625,115 @@ fun PaymentScreen(
             }
         }
         if (showSuccessDialog) {
-            AlertDialog(
-                onDismissRequest = {
-                    showSuccessDialog = false
-                    navController.navigate("home") {
-                        popUpTo(0) { inclusive = true }
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                title = { 
+            // Custom Success Dialog dengan positioning yang lebih baik
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.6f))
+                    .clickable(enabled = false) { }
+                    .systemBarsPadding(), // Tambahkan ini untuk menghindari system bars
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.88f)
+                        .wrapContentHeight(),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    shape = RoundedCornerShape(24.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
+                ) {
                     Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(36.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color(0xFF4CAF50),
-                            modifier = Modifier.size(40.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            "Pembayaran Berhasil!", 
-                            fontFamily = PoppinsFont, 
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 18.sp,
-                            color = Color(0xFF1A1A1A)
-                        )
-                    }
-                },
-                text = { 
-                    Text(
-                        "Terima kasih! Pesanan Anda telah berhasil diproses. Silakan cek riwayat pesanan di profil Anda.", 
-                        fontFamily = PoppinsFont,
-                        fontSize = 15.sp,
-                        textAlign = TextAlign.Center,
-                        color = Color(0xFF666666)
-                    ) 
-                },
-                confirmButton = {
-                    Button(
-                        onClick = { 
-                            showSuccessDialog = false
-                            navController.navigate("home") {
-                                popUpTo(0) { inclusive = true }
+                        // Success Icon
+                        Card(
+                            modifier = Modifier.size(96.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFFFCB507).copy(alpha = 0.1f)),
+                            shape = CircleShape
+                        ) {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = Color(0xFFFCB507),
+                                    modifier = Modifier.size(56.dp)
+                                )
                             }
-                        },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50))
-                    ) {
+                        }
+                        
+                        Spacer(modifier = Modifier.height(28.dp))
+                        
+                        // Title
                         Text(
-                            "Kembali ke Beranda", 
+                            text = "Pembayaran Berhasil!",
                             fontFamily = PoppinsFont,
-                            fontWeight = FontWeight.Medium,
-                            fontSize = 15.sp,
-                            color = Color.White
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 24.sp,
+                            color = Color(0xFF1A1A1A),
+                            textAlign = TextAlign.Center
                         )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        // Description
+                        Text(
+                            text = "Terima kasih! Pesanan Anda telah berhasil diproses. Silakan cek riwayat pesanan di profil Anda.",
+                            fontFamily = PoppinsFont,
+                            fontSize = 16.sp,
+                            color = Color(0xFF666666),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 24.sp
+                        )
+                        
+                        Spacer(modifier = Modifier.height(36.dp))
+                        
+                        // Button
+                        Button(
+                            onClick = { 
+                                showSuccessDialog = false
+                                navController.navigate("home") {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFCB507)),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 0.dp,
+                                pressedElevation = 2.dp
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Home,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "Kembali ke Beranda",
+                                    fontFamily = PoppinsFont,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 16.sp,
+                                    color = Color.White
+                                )
+                            }
+                        }
                     }
                 }
-            )
+            }
         }
     }
 }

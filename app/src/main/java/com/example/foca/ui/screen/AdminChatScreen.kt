@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.foca.data.model.ChatMessage
 import com.example.foca.data.viewmodel.ChatViewModel
 import com.example.foca.data.viewmodel.ProfileViewModel
@@ -28,20 +29,26 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen(navController: NavController, userId: String) {
+fun AdminChatScreen(
+    navController: NavController,
+    userId: String, // user yang sedang dipilih admin
+    adminId: String = "admin" // ID unik untuk admin
+) {
     val chatViewModel: ChatViewModel = viewModel()
     val profileViewModel: ProfileViewModel = viewModel()
     val chatMessages by chatViewModel.chatMessages.collectAsState()
-    val userProfile by profileViewModel.profile.collectAsState()
+    val adminProfile by profileViewModel.profile.collectAsState()
     var inputText by remember { mutableStateOf(TextFieldValue("")) }
     val snackbarHostState = remember { SnackbarHostState() }
     val listState = rememberScrollState()
-    val adminId = "admin"
+    val userProfile by profileViewModel.userProfile.collectAsState()
+
 
     // Load profile dan chat saat pertama kali
     LaunchedEffect(userId) {
-        profileViewModel.loadProfile(userId)
-        chatViewModel.listenChatMessages(userId, userId)
+        profileViewModel.loadProfile(adminId)
+        profileViewModel.loadUserProfile(userId)
+        chatViewModel.listenChatMessages(userId, adminId)
     }
 
     // Scroll otomatis ke bawah saat ada pesan baru
@@ -55,13 +62,42 @@ fun ChatScreen(navController: NavController, userId: String) {
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Chat dengan Admin",
-                        fontFamily = PoppinsFont,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = Color(0xFF1A1A1A)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        // User Avatar
+                        val photoUrl = userProfile?.photoUrl ?: ""
+                        val name = userProfile?.firstName ?: "Pengguna"
+                        if (photoUrl.isNotBlank()) {
+                            AsyncImage(
+                                model = photoUrl,
+                                contentDescription = "User Photo",
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color(0xFFBDBDBD), shape = RoundedCornerShape(50))
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(Color(0xFFE0E0E0), shape = RoundedCornerShape(50)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = name.firstOrNull()?.uppercase() ?: "P",
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = PoppinsFont
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = name,
+                            fontFamily = PoppinsFont,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp,
+                            color = Color(0xFF1A1A1A)
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
@@ -103,7 +139,7 @@ fun ChatScreen(navController: NavController, userId: String) {
                     Spacer(modifier = Modifier.height(8.dp))
                     if (chatMessages.isEmpty()) {
                         Text(
-                            text = "Belum ada pesan. Mulai percakapan!",
+                            text = "Mulai percakapan dengan pengguna.",
                             color = Color.Gray,
                             fontFamily = PoppinsFont,
                             fontSize = 14.sp,
@@ -113,7 +149,7 @@ fun ChatScreen(navController: NavController, userId: String) {
                         chatMessages.forEach { message ->
                             UnifiedChatBubble(
                                 message = message,
-                                isCurrentUser = message.sender == userId
+                                isCurrentUser = message.sender == adminId
                             )
                         }
                     }
@@ -147,8 +183,8 @@ fun ChatScreen(navController: NavController, userId: String) {
                 Button(
                     onClick = {
                         if (inputText.text.isNotBlank()) {
-                            val photoUrl = userProfile?.photoUrl ?: ""
-                            chatViewModel.sendMessage(userId, inputText.text, userId, photoUrl)
+                            val photoUrl = adminProfile?.photoUrl ?: ""
+                            chatViewModel.sendMessage(userId, inputText.text, adminId, photoUrl)
                             inputText = TextFieldValue("")
                         }
                     },
@@ -164,6 +200,51 @@ fun ChatScreen(navController: NavController, userId: String) {
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun UnifiedChatBubble(message: ChatMessage, isCurrentUser: Boolean) {
+    val time = remember(message.timestamp) {
+        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
+        sdf.format(Date(message.timestamp))
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 8.dp),
+        horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
+    ) {
+        Column(horizontalAlignment = if (isCurrentUser) Alignment.End else Alignment.Start) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = if (isCurrentUser) Color(0xFFFCB507) else Color(0xFFF1F0F0),
+                        shape = RoundedCornerShape(
+                            topStart = 16.dp,
+                            topEnd = 16.dp,
+                            bottomStart = if (isCurrentUser) 16.dp else 0.dp,
+                            bottomEnd = if (isCurrentUser) 0.dp else 16.dp
+                        )
+                    )
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                    .widthIn(max = 260.dp)
+            ) {
+                Text(
+                    text = message.text,
+                    color = if (isCurrentUser) Color.White else Color.Black,
+                    fontFamily = PoppinsFont,
+                    fontSize = 15.sp
+                )
+            }
+            Text(
+                text = time,
+                color = Color.Gray,
+                fontFamily = PoppinsFont,
+                fontSize = 11.sp,
+                modifier = Modifier.padding(top = 4.dp, end = 4.dp, start = 4.dp)
+            )
         }
     }
 }

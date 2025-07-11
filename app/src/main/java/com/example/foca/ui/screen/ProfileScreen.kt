@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,6 +42,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -72,6 +74,9 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material3.AlertDialog
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.widget.Toast
 import com.example.foca.R
 
 @Composable
@@ -232,14 +237,34 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
     val uid = userId ?: ""
     val profileState = viewModel.profile.collectAsState()
     val ordersState = viewModel.orders.collectAsState()
+    val isUploadingState = viewModel.isUploading.collectAsState()
     val context = LocalContext.current
     var showLogoutDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     
     // Edit profile form states
-    var editName by remember { mutableStateOf("") }
+    var editFirstName by remember { mutableStateOf("") }
+    var editLastName by remember { mutableStateOf("") }
     var editEmail by remember { mutableStateOf("") }
     var editPhone by remember { mutableStateOf("") }
+
+    // Image picker launcher
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { imageUri ->
+            viewModel.uploadProfilePhoto(
+                userId = uid,
+                imageUri = imageUri,
+                onSuccess = { url ->
+                    Toast.makeText(context, "Foto profil berhasil diperbarui!", Toast.LENGTH_SHORT).show()
+                },
+                onError = { error ->
+                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
+    }
 
     LaunchedEffect(uid) {
         if (uid.isNotEmpty()) {
@@ -315,34 +340,75 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
                     
                     Spacer(modifier = Modifier.height(40.dp))
                     
-                    // Simple Profile Avatar
+                    // Simple Profile Avatar with camera button
                     Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .border(2.dp, Color.White, CircleShape)
-                            .clip(CircleShape)
-                            .background(Color.White),
+                        modifier = Modifier.size(100.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (profile != null && !profile.photoUrl.isNullOrEmpty()) {
-                            Image(
-                                painter = rememberAsyncImagePainter(profile.photoUrl),
-                                contentDescription = "Profile Photo",
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .border(2.dp, Color.White, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable { imagePickerLauncher.launch("image/*") },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (profile != null && !profile.photoUrl.isNullOrEmpty()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(profile.photoUrl),
+                                    contentDescription = "Profile Photo",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_john),
+                                    contentDescription = "Profile Photo",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(8.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                            
+                            // Upload progress indicator
+                            if (isUploadingState.value) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(30.dp),
+                                        strokeWidth = 3.dp
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Camera icon overlay
+                        if (!isUploadingState.value) {
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_john),
-                                contentDescription = "Profile Photo",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(8.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
+                                    .size(32.dp)
+                                    .offset(x = 28.dp, y = 28.dp)
+                                    .background(Color(0xFFFCB507), CircleShape)
+                                    .border(2.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = "Change Photo",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -358,7 +424,7 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
             ) {                
                 if (profile != null) {
                     Text(
-                        text = profile.name,
+                        text = profile.firstName.ifEmpty { profile.name.split(" ").firstOrNull() ?: "User" },
                         fontFamily = PoppinsFont,
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
@@ -384,7 +450,7 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
                     }
                 } else {
                     Text(
-                        text = "John Doe",
+                        text = "User",
                         fontFamily = PoppinsFont,
                         fontWeight = FontWeight.Bold,
                         fontSize = 24.sp,
@@ -402,7 +468,7 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "john.doe@example.com",
+                            text = "user@example.com",
                             fontFamily = PoppinsFont,
                             fontSize = 15.sp,
                             color = Color(0xFF666666)
@@ -534,13 +600,8 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
             confirmButton = {
                 TextButton(onClick = {
                     showLogoutDialog = false
-                    FirebaseAuth.getInstance().signOut()
-                    googleSignInClient.signOut().addOnCompleteListener {
-                        onLogout?.invoke()
-                        navController.navigate("login") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
+                    // Only call onLogout, don't handle sign out here
+                    onLogout?.invoke()
                 }) {
                     Text(
                         "Ya",
@@ -564,7 +625,8 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
     if (showEditDialog) {
         LaunchedEffect(showEditDialog) {
             if (profile != null) {
-                editName = profile.name
+                editFirstName = profile.firstName
+                editLastName = profile.lastName
                 editEmail = profile.email
                 editPhone = profile.phone ?: ""
             }
@@ -580,10 +642,93 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
             },
             text = {
                 Column {
+                    // Profile Photo Section
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .align(Alignment.CenterHorizontally),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(80.dp)
+                                .border(2.dp, Color(0xFFFCB507), CircleShape)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable { imagePickerLauncher.launch("image/*") },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (profile != null && !profile.photoUrl.isNullOrEmpty()) {
+                                Image(
+                                    painter = rememberAsyncImagePainter(profile.photoUrl),
+                                    contentDescription = "Profile Photo",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_john),
+                                    contentDescription = "Profile Photo",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(4.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                            
+                            // Upload progress indicator
+                            if (isUploadingState.value) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(20.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            }
+                        }
+                        
+                        // Camera icon overlay
+                        if (!isUploadingState.value) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .offset(x = 20.dp, y = 20.dp)
+                                    .background(Color(0xFFFCB507), CircleShape)
+                                    .border(1.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CameraAlt,
+                                    contentDescription = "Change Photo",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
                     OutlinedTextField(
-                        value = editName,
-                        onValueChange = { editName = it },
-                        label = { Text("Nama", fontFamily = PoppinsFont) },
+                        value = editFirstName,
+                        onValueChange = { editFirstName = it },
+                        label = { Text("Nama Depan", fontFamily = PoppinsFont) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = editLastName,
+                        onValueChange = { editLastName = it },
+                        label = { Text("Nama Belakang", fontFamily = PoppinsFont) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -607,7 +752,8 @@ fun ProfileScreen(navController: NavController, userId: String? = null, onLogout
                     if (uid.isNotEmpty()) {
                         viewModel.updateProfile(
                             uid = uid,
-                            name = editName,
+                            firstName = editFirstName,
+                            lastName = editLastName,
                             email = editEmail,
                             phone = editPhone
                         )

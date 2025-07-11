@@ -1,5 +1,6 @@
 package com.example.foca
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -7,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import com.example.foca.ui.MainApp
 import com.example.foca.ui.theme.FocaTheme
@@ -46,6 +48,16 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var userId by remember { mutableStateOf<String?>(null) }
+            
+            // Listen to authentication state changes only
+            LaunchedEffect(Unit) {
+                val authStateListener = FirebaseAuth.AuthStateListener { auth ->
+                    val currentUser = auth.currentUser
+                    userId = currentUser?.uid
+                }
+                firebaseAuth.addAuthStateListener(authStateListener)
+            }
+            
             FocaTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -54,7 +66,19 @@ class MainActivity : ComponentActivity() {
                     MainApp(
                         onGoogleSignIn = { launchGoogleSignIn { uid -> userId = uid } },
                         userId = userId,
-                        onLogout = { userId = null }
+                        onLogout = { 
+                            // Sign out from Firebase first
+                            firebaseAuth.signOut()
+                            // Clear "Remember Me" preference
+                            val sharedPref = getSharedPreferences("foca_prefs", Context.MODE_PRIVATE)
+                            sharedPref.edit().putBoolean("remember_me", false).apply()
+                            // Clear Google Sign-In
+                            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
+                            val googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
+                            googleSignInClient.signOut()
+                            // Finally clear userId
+                            userId = null
+                        }
                     )
                 }
             }
@@ -95,11 +119,30 @@ class MainActivity : ComponentActivity() {
                     user?.let {
                         val profileData = hashMapOf(
                             "userId" to it.uid,
+                            "firstName" to (it.displayName?.split(" ")?.getOrNull(0) ?: ""),
+                            "lastName" to (it.displayName?.split(" ")?.drop(1)?.joinToString(" ") ?: ""),
                             "name" to (it.displayName ?: ""),
                             "email" to (it.email ?: ""),
-                            "photoUrl" to (it.photoUrl?.toString() ?: "")
+                            "photoUrl" to (it.photoUrl?.toString() ?: ""),
+                            "phone" to "",
+                            "birthDate" to "",
+                            "role" to if (it.email?.lowercase()?.trim() == "admin@foca.com") "admin" else "user", // Set admin role for specific email
+                            "createdAt" to com.google.firebase.Timestamp.now()
                         )
-                        firestore.collection("profile").document(it.uid).set(profileData)
+                        firestore.collection("users").document(it.uid).get()
+                            .addOnSuccessListener { document ->
+                                if (document.exists()) {
+                                    // User already exists, update role and photo if needed
+                                    val updateData = hashMapOf(
+                                        "photoUrl" to (it.photoUrl?.toString() ?: ""),
+                                        "role" to if (it.email?.lowercase()?.trim() == "admin@foca.com") "admin" else "user" // Always check and update role
+                                    )
+                                    firestore.collection("users").document(it.uid).update(updateData as Map<String, Any>)
+                                } else {
+                                    // Create new user profile
+                                    firestore.collection("users").document(it.uid).set(profileData)
+                                }
+                            }
                         // Log login event
                         val loginLog = hashMapOf(
                             "userId" to it.uid,
@@ -110,6 +153,11 @@ class MainActivity : ComponentActivity() {
                         firestore.collection("login_history").add(loginLog)
                     }
                     Toast.makeText(this, "Login Google Berhasil!", Toast.LENGTH_SHORT).show()
+                    
+                    // Save "Remember Me" preference as true for Google Sign-In
+                    val sharedPref = getSharedPreferences("foca_prefs", Context.MODE_PRIVATE)
+                    sharedPref.edit().putBoolean("remember_me", true).apply()
+                    
                     onUserId(user?.uid)
                 } else {
                     Toast.makeText(this, "Firebase Auth failed.", Toast.LENGTH_SHORT).show()
